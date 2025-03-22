@@ -1,0 +1,6 @@
+A task management app that allows users to add a task with a title, description, completion status and completion date.
+Users should be able to edit the tasks and access a filterable/searchable list.
+Smart search/dialog/question about the Todos powered by a light locally runnable(on cpu) LLM model (Current idea is to use Llama 3.2 1B).
+For every new day, the landing page should be empty unless there are list of tasks created on that day.
+LIMITATION
+Tasks are not scheduled yet in this version - in that there is no start or end date. Just the date it was created, updated and completed
