@@ -71,4 +71,53 @@ def get_db():
             print("Closing database connection")
             db.close()
 
+# Schemas
+class ListResponse(BaseModel):
+    total: int
+    page: int
+    size: int
+    data: list[object]
 
+class ModelInDBBase(BaseModel):
+    id: UUID4
+    created_at: datetime
+    updated_at: datetime | None
+
+    model_config = {
+        "from_attributes": True
+    }
+
+class UserCreate(BaseModel):
+    name: str
+    email: str
+    password: str
+    confirm_password: str
+
+class UserUpdate(BaseModel):
+    name: str | None
+    email: str | None 
+    password: str | None 
+    confirm_password: str | None
+
+class UserInDB(ModelInDBBase):
+    name: str
+    email: str
+
+class TaskCreate(BaseModel):
+    title: str
+    description: str
+    is_complete: bool | None 
+    completed_at: bool | None
+
+class TaskUpdate(BaseModel):
+    title: str | None 
+    description: str | None
+    is_complete: bool | None
+    completed_at: bool | None
+
+class TaskInDB(ModelInDBBase):
+    title: str 
+    description: str 
+    is_complete: bool 
+    completed_at: bool
+    user: UserInDB
