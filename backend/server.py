@@ -143,6 +143,10 @@ class TaskInDB(ModelInDBBase):
     completed_at: datetime | None
     user: UserInDB
 
+class ChatDialogMessage(BaseModel):
+    role: str
+    content: str
+
 # CRUD Operations
 async def create_user(db: Session, user_create: UserCreate) -> Model:
     print(f"Creating User with params: {user_create.model_dump()}")
@@ -288,8 +292,7 @@ def initialize_llama(rank: int, world_size: int, ckpt_dir, tokenizer_path, max_s
     finally:
         torch.distributed.destroy_process_group()
 
-def prompt_llama(db: Session, user: User, prompt: str) -> str:
-    llama = initialize_llama(
+llama = initialize_llama(
         rank=0,
         world_size=1,
         ckpt_dir="llama/Llama3.2-3B-Instruct",
@@ -297,10 +300,10 @@ def prompt_llama(db: Session, user: User, prompt: str) -> str:
         max_seq_len=1024,
         max_batch_size=1,
     )
-    context_tasks = db.execute(select(Task).where(Task.user_id == user.id).order_by(Task.created_at.desc())).all()
-    context_tasks_json = [task.to_dict() for task in context_tasks]
+
+def prompt_llama(context_tasks: list[dict], prompt: str) -> str:
     datetime_now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    system_prompt = f"You are my assistant for a task management app called Dew. Below are my most recent tasks in JSON format: {str(context_tasks_json)}. Right now it is: {datetime_now}"
+    system_prompt = f"You are my assistant for a task management app called Dew. Below are my most recent tasks in JSON format: {str(context_tasks)}. Right now it is: {datetime_now}"
     dialogs: list[Dialog] = [
         [
             {
@@ -482,3 +485,17 @@ async def update_task(
     is_deleted = await delete_obj(db, Task, task_id)
     if is_deleted:
         return None
+
+# POST /api/users/{user_id}/chat to chat with llama that will have the context of this user's tasks
+@app.post("/users/{user_id}/chat", response_model=ChatDialogMessage,status_code=200)
+async def chat(
+    user_id: UUID4,
+    prompt: ChatDialogMessage,
+    _: User = Depends(current_logged_in_user),
+    db: Session = Depends(get_db)
+):
+    user = await get_obj_or_404(db, User, user_id)
+    tasks = db.execute(select(Task).where(Task.user_id == user.id).order_by(Task.created_at.desc())).scalars()
+    context_tasks = [task.to_dict() for task in tasks]
+    llama_response = prompt_llama(context_tasks, prompt.content)
+    return ChatDialogMessage(role="assistant",content=llama_response)
