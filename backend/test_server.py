@@ -174,4 +174,93 @@ async def test_welcome(client, db):
     assert response.status_code == 200
     assert response.json()["message"] == "Welcome to dew"
 
+""""
+    POST /api/signup to create a user
+    POST /api/login to log in a user, 
+    GET /api/me to get the current logged in user, 
+    GET /api/users/{user_id}/tasks to filter,search, paginate the user's tasks
+    POST /api/users/{user_id}/tasks to create a task for this user
+    PUT/PATCH /api/users/{user_id}/tasks/{task_id} to update this task
+    DELETE /api/users/{user_id}/tasks/{task_id} to delete this task
+    POST /api/users/{user_id}/chat to chat with llama that will have the context of this user's tasks
+"""
 
+@pytest.mark.asyncio
+async def test_login_signup_profile_tasks_apis(client, db):
+    user_data = {
+        "name": "Testuser5",
+        "email": "test.user5@example.com",
+        "password": "klssdlkldskd",
+        "confirm_password": "klssdlkldskd"
+    }
+    response = client.post("/api/signup",json=user_data)
+    assert response.status_code == 201
+    assert response.json()["name"] == user_data["name"]
+    user_id = response.json()["id"]
+    login_data = {
+        "email": "test.user5@example.com",
+        "password": "klssdlkldskd",
+    }
+    response = client.post("/api/login",json=login_data)
+    assert response.status_code == 200
+    assert response.json()["message"] == "Logged In"
+    assert "access_token" in response.cookies
+    secure_client = TestClient(app, cookies={"access_token":response.cookies["access_token"]})
+    response = secure_client.get("/me")
+    assert response.status_code == 200
+    assert response.json()["email"] == login_data["email"]
+    for i in range(100):
+        task_data = {
+            "title": f"Sample Task {i}",
+            "description":f"Sample Task {i} descr",
+            "is_complete":False
+        }
+        response = secure_client.post(f"/api/users/{user_id}/tasks",json=task_data)
+        assert response.status_code == 201
+        assert response.json()["title"] == task_data["title"]
+    # paginate
+    response = secure_client.get(f"/api/users/{user_id}/tasks/?page=1&size=1")
+    assert response.status_code == 200
+    assert len(response.json()["data"]) == 1
+    assert response.json()["total"] >= 1
+    assert response.json()["page"] == 1
+    assert response.json()["size"] == 1
+    response = secure_client.get(f"/api/users/{user_id}/tasks/?page=2&size=1")
+    assert response.status_code == 200
+    assert len(response.json()["data"]) == 1
+    assert response.json()["total"] >= 1
+    assert response.json()["page"] == 2
+    assert response.json()["size"] == 1
+    response = secure_client.get(f"/api/users/{user_id}/tasks/?page=2&size=2")
+    assert response.status_code == 200
+    assert len(response.json()["data"]) == 2
+    assert response.json()["total"] >= 1
+    assert response.json()["page"] == 2
+    assert response.json()["size"] == 2
+    # Filters
+    response = secure_client.get(f"/api/users/{user_id}/tasks?title__ilike=samp&is_complete=False")
+    assert response.status_code == 200
+    assert len(response.json()["data"]) >= 1
+    # Search
+    response = secure_client.get(f"/api/users/{user_id}/tasks?q=samp")
+    assert response.status_code == 200
+    assert len(response.json()["data"]) >= 1
+    # update task
+    task_db = db.execute(select(Task).where(Task.user_id == uuid.UUID(user_id))).scalars().first()
+    task_id = str(task_db.id)
+    task_update = {
+        "title": "New Task Title",
+        "is_complete": True,
+        "completed_at": datetime.now().isoformat()
+    }
+    response = secure_client.put(f"/api/users/{user_id}/tasks/{task_id}/", json=task_update)
+    assert response.status_code == 200
+    assert response.json()["title"] == task_update["title"]
+    assert response.json()["is_complete"] == task_update["is_complete"]
+    assert response.json()["completed_at"] != None
+
+    # delete task
+    response = secure_client.delete(f"/api/users/{user_id}/tasks/{task_id}/")
+    assert response.status_code == 204
+    task = db.execute(select(Task).where(Task.id == uuid.UUID(task_id))).scalar_one_or_none()
+    assert task is None

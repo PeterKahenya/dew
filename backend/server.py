@@ -1,7 +1,11 @@
-from typing import Sequence
+from pkgutil import get_data
+from typing import Any, Sequence
 import uuid
-from datetime import datetime
-from fastapi import Depends, FastAPI, HTTPException
+from datetime import datetime, timezone, timedelta
+from fastapi import Cookie, Depends, FastAPI, HTTPException, Query, Request
+from fastapi.responses import JSONResponse
+import jwt
+from passlib.context import CryptContext
 from sqlalchemy import Boolean, ForeignKey, String, create_engine, delete, exc, or_, select, update
 from sqlalchemy.dialects.mysql import pymysql
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship, sessionmaker
@@ -32,6 +36,46 @@ class User(Model):
     updated_at: Mapped[datetime | None] = mapped_column(onupdate=datetime.now)
     tasks: Mapped[list["Task"]] = relationship("Task",back_populates="user")
 
+    def create_jwt_token(self, secret: str, algorithm: str, expiry_seconds: int) -> str:
+        """
+        Create a JWT token for the user, encoding the email and expiry time and return it
+        """
+        print(f"Creating JWT token for user {self.name}")
+        expire = datetime.now(timezone.utc) + timedelta(seconds=expiry_seconds)
+        payload = {
+            "sub": self.email,
+            "exp": expire
+        }
+        return jwt.encode(payload=payload,key=secret,algorithm=algorithm)
+    
+    @staticmethod
+    def verify_jwt_token(db: Session, token: str, secret: str, algorithm) -> tuple[str,str,str] | None:
+        """
+            Verify the JWT token and return the email
+        """
+        print(f"Verifying JWT token {token}")
+        try:
+            payload = jwt.decode(jwt=token,key=secret,algorithms=[algorithm],options={"verify_exp":True,"verify_signature":True,"required":["exp","sub"]})
+            return payload.get("sub",None)
+        except jwt.InvalidAlgorithmError:
+            print(f"JWT token invalid algorithm: {algorithm} on token: {token}")
+            raise HTTPException(status_code=401,detail={"message":"Invalid access token"})
+        except jwt.ExpiredSignatureError:
+            print(f"JWT expired signature on token: {token}")
+            raise HTTPException(status_code=401,detail={"message":"Access Token expired"})
+        except jwt.InvalidTokenError as e:
+            print(f"JWT invalid token: {token} error: {e}")
+            raise HTTPException(status_code=401,detail={"message":"Invalid access token"})
+    
+    def set_password(self, password):
+        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        self.password = pwd_context.hash(password)
+        return self
+
+    def check_password(self, password):
+        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        return pwd_context.verify(password, self.password)
+
 class Task(Model):
     __tablename__ = "tasks"
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True,unique=True,default=uuid.uuid4)    
@@ -60,6 +104,10 @@ class ModelInDBBase(BaseModel):
         "from_attributes": True
     }
 
+class UserLogin(BaseModel):
+    email: str
+    password: str 
+    
 class UserCreate(BaseModel):
     name: str
     email: str
@@ -79,8 +127,8 @@ class UserInDB(ModelInDBBase):
 class TaskCreate(BaseModel):
     title: str
     description: str
-    is_complete: bool | None 
-    completed_at: datetime | None
+    is_complete: bool | None  = False
+    completed_at: datetime | None = None
 
 class TaskUpdate(BaseModel):
     title: str | None = None
@@ -92,21 +140,26 @@ class TaskInDB(ModelInDBBase):
     title: str 
     description: str 
     is_complete: bool 
-    completed_at: datetime
+    completed_at: datetime | None
     user: UserInDB
+
+class ChatDialogMessage(BaseModel):
+    role: str
+    content: str
 
 # CRUD Operations
 async def create_user(db: Session, user_create: UserCreate) -> Model:
     print(f"Creating User with params: {user_create.model_dump()}")
-    obj = User(**user_create.model_dump(exclude_none=True))
-    db.add(obj)
+    user = User(name=user_create.name, email=user_create.email)
+    user = user.set_password(user_create.password)
+    db.add(user)
     db.commit()
-    db.refresh(obj)
-    return obj
+    db.refresh(user)
+    return user
 
-async def create_task(db: Session, task_create: TaskCreate, user: User) -> Model:
+async def create_task(db: Session, task_create: TaskCreate, user: User) -> Task:
     print(f"Creating Task with params: {task_create.model_dump()}")
-    obj = Task(**task_create.model_dump())
+    obj = Task(**task_create.model_dump(exclude_none=True))
     obj.user_id = user.id
     db.add(obj)
     db.commit()
@@ -150,6 +203,9 @@ async def filter_objects(db: Session, model: Model, params: dict = {}, sort_by:s
             else:
                 column_name, condition = key, 'eq'
             column = getattr(model, column_name)
+            if isinstance(column.type, Boolean):
+                if isinstance(value, str):
+                    value = value.lower() in ('true','True', 't', 'yes', 'y', '1')
             query = query.where(CONDITION_MAP[condition](column, value))
         query = query.order_by(sort_column.asc() if sort_order == 'asc' else sort_column.desc())
         print(f"Query: {query.compile()}")
@@ -169,7 +225,7 @@ async def search_objects(db: Session, model: Model, q: str) -> Sequence[Model]:
         query = query.where(or_(*conditions))
     return db.scalars(query).all()
 
-async def update_obj(db: Session, model: Model, obj_id: UUID4, obj_update: UserUpdate|TaskUpdate) -> User:
+async def update_obj(db: Session, model: Model, obj_id: UUID4, obj_update: UserUpdate|TaskUpdate) -> Model:
     print(f"Updating {model.__tablename__} with id: {obj_id}")
     obj = await get_obj_or_404(db, model, obj_id)
     obj_update_cleaned = obj_update.model_dump(exclude_unset=True, exclude_none=True)
@@ -193,6 +249,7 @@ class AppSettings(BaseSettings):
     mysql_user: str
     mysql_password: str
     mysql_database: str
+    secret: str
 
 settings = AppSettings()
 
@@ -235,8 +292,7 @@ def initialize_llama(rank: int, world_size: int, ckpt_dir, tokenizer_path, max_s
     finally:
         torch.distributed.destroy_process_group()
 
-def prompt_llama(db: Session, user: User, prompt: str) -> str:
-    llama = initialize_llama(
+llama = initialize_llama(
         rank=0,
         world_size=1,
         ckpt_dir="llama/Llama3.2-3B-Instruct",
@@ -244,10 +300,10 @@ def prompt_llama(db: Session, user: User, prompt: str) -> str:
         max_seq_len=1024,
         max_batch_size=1,
     )
-    context_tasks = db.execute(select(Task).where(Task.user_id == user.id).order_by(Task.created_at.desc())).all()
-    context_tasks_json = [task.to_dict() for task in context_tasks]
+
+def prompt_llama(context_tasks: list[dict], prompt: str) -> str:
     datetime_now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    system_prompt = f"You are my assistant for a task management app called Dew. Below are my most recent tasks in JSON format: {str(context_tasks_json)}. Right now it is: {datetime_now}"
+    system_prompt = f"You are my assistant for a task management app called Dew. Below are my most recent tasks in JSON format: {str(context_tasks)}. Right now it is: {datetime_now}"
     dialogs: list[Dialog] = [
         [
             {
@@ -293,3 +349,153 @@ async def signup(
     user_create.confirm_password = None
     user = await create_user(db, user_create)
     return user
+
+@app.post("/login", status_code=200)
+async def login(
+    user_login: UserLogin,
+    db: Session = Depends(get_db)
+):
+    user = db.execute(select(User).where(User.email == user_login.email)).scalar_one_or_none()
+    if user and user.check_password(user_login.password):
+        access_token = user.create_jwt_token(settings.secret, algorithm="HS256", expiry_seconds=3600)
+        response = JSONResponse(content={"message": "Logged In"})
+        response.set_cookie(key="access_token", value=access_token)
+        return response
+    else:
+        raise HTTPException(status_code=401,detail={
+            "message":"Invalid email or password"
+        })
+
+def current_logged_in_user(db: Session = Depends(get_db), access_token: str = Cookie()):
+    email = User.verify_jwt_token(db, access_token, secret=settings.secret, algorithm="HS256")
+    user = db.execute(select(User).where(User.email == email)).scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=401,detail={
+            "message":"Invalid Access Token"
+        })
+    return user
+    
+@app.get("/me", response_model=UserInDB, status_code=200)
+async def profile(
+    user: User = Depends(current_logged_in_user)
+):
+    return user
+
+@app.post("/users/{user_id}/tasks", response_model=TaskInDB, status_code=201)
+async def add_task(
+    user_id: UUID4,
+    task_create: TaskCreate,
+    _: User = Depends(current_logged_in_user),
+    db: Session = Depends(get_db),
+):
+    user = await get_obj_or_404(db, User, user_id)
+    task = await create_task(db, task_create, user)
+    return task
+
+async def get_query_params(
+    request: Request,
+    page: int = Query(1, ge=1),
+    size: int = Query(10, ge=1, le=100),
+    q: str | None = None,
+) -> dict[str, Any]:
+    query_params = dict(request.query_params)
+    query_params.pop('page', None)
+    query_params.pop('size', None)
+    query_params.pop('q', None)
+    params = {
+        "page": page,
+        "size": size,
+        "q": q,
+        **query_params
+    }
+    return params
+
+async def paginate(
+                    db: Session, 
+                    model: Model,
+                    schema: BaseModel,
+                    q: str | None = None,
+                    page: int = Query(1, ge=1),
+                    size: int = Query(10, ge=1, le=100),
+                    sort_by: str = "created_at,asc",
+                    **params
+                ) -> ListResponse:
+    if q:
+        data = await search_objects(db=db, model=model,q=q)
+    elif params and len(params) > 0:
+        data = await filter_objects(db=db, model=model,params=params,sort_by=sort_by)
+    else:
+        data = await filter_objects(db=db, model=model, params={},sort_by=sort_by)
+    offset = (page - 1) * size
+    total = len(data)
+    paginated_items = data[offset:offset + size]
+    paginated_items = [schema.model_validate(item) for item in paginated_items]
+    return ListResponse(**{
+        "total": total,
+        "page": page,
+        "size": size,
+        "data": paginated_items
+    })
+
+@app.get("/users/{user_id}/tasks", response_model=ListResponse, status_code=200)
+async def get_tasks(
+    user_id: UUID4,
+    params: dict[str, Any] = Depends(get_query_params),
+    _: User = Depends(current_logged_in_user),
+    db: Session = Depends(get_db)
+):
+    user = await get_obj_or_404(db, User, user_id)
+    params["user_id"] = user_id
+    return await paginate(db,Task,TaskInDB,**params)
+
+@app.put("/users/{user_id}/tasks/{task_id}/", response_model=TaskInDB, status_code=200)
+async def update_task(
+    user_id: UUID4,
+    task_id: UUID4,
+    update_task: TaskUpdate,
+    _: User = Depends(current_logged_in_user),
+    db: Session = Depends(get_db)
+):
+    user = await get_obj_or_404(db, User, user_id)
+    task_db = await get_obj_or_404(db, Task, task_id)
+    if task_db.user.id != user.id:
+        raise HTTPException(status_code=403,detail={
+            "message":"You do not have permission to modify this task"
+        })
+    task_db: Task = await update_obj(db, Task, task_id, update_task)
+    if update_task.is_complete and not update_task.completed_at:
+        task_db.completed_at = datetime.now(tz=timezone.utc)
+    db.commit()
+    db.refresh(task_db)
+    return task_db
+
+@app.delete("/users/{user_id}/tasks/{task_id}/", response_model=None, status_code=204)
+async def update_task(
+    user_id: UUID4,
+    task_id: UUID4,
+    _: User = Depends(current_logged_in_user),
+    db: Session = Depends(get_db)
+):
+    user = await get_obj_or_404(db, User, user_id)
+    task_db = await get_obj_or_404(db, Task, task_id)
+    if task_db.user.id != user.id:
+        raise HTTPException(status_code=403,detail={
+            "message":"You do not have permission to modify this task"
+        })
+    is_deleted = await delete_obj(db, Task, task_id)
+    if is_deleted:
+        return None
+
+# POST /api/users/{user_id}/chat to chat with llama that will have the context of this user's tasks
+@app.post("/users/{user_id}/chat", response_model=ChatDialogMessage,status_code=200)
+async def chat(
+    user_id: UUID4,
+    prompt: ChatDialogMessage,
+    _: User = Depends(current_logged_in_user),
+    db: Session = Depends(get_db)
+):
+    user = await get_obj_or_404(db, User, user_id)
+    tasks = db.execute(select(Task).where(Task.user_id == user.id).order_by(Task.created_at.desc())).scalars()
+    context_tasks = [task.to_dict() for task in tasks]
+    llama_response = prompt_llama(context_tasks, prompt.content)
+    return ChatDialogMessage(role="assistant",content=llama_response)
