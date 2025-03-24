@@ -465,3 +465,20 @@ async def update_task(
     db.commit()
     db.refresh(task_db)
     return task_db
+
+@app.delete("/users/{user_id}/tasks/{task_id}/", response_model=None, status_code=204)
+async def update_task(
+    user_id: UUID4,
+    task_id: UUID4,
+    _: User = Depends(current_logged_in_user),
+    db: Session = Depends(get_db)
+):
+    user = await get_obj_or_404(db, User, user_id)
+    task_db = await get_obj_or_404(db, Task, task_id)
+    if task_db.user.id != user.id:
+        raise HTTPException(status_code=403,detail={
+            "message":"You do not have permission to modify this task"
+        })
+    is_deleted = await delete_obj(db, Task, task_id)
+    if is_deleted:
+        return None
