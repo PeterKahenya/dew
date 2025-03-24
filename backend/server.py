@@ -221,7 +221,7 @@ async def search_objects(db: Session, model: Model, q: str) -> Sequence[Model]:
         query = query.where(or_(*conditions))
     return db.scalars(query).all()
 
-async def update_obj(db: Session, model: Model, obj_id: UUID4, obj_update: UserUpdate|TaskUpdate) -> User:
+async def update_obj(db: Session, model: Model, obj_id: UUID4, obj_update: UserUpdate|TaskUpdate) -> Model:
     print(f"Updating {model.__tablename__} with id: {obj_id}")
     obj = await get_obj_or_404(db, model, obj_id)
     obj_update_cleaned = obj_update.model_dump(exclude_unset=True, exclude_none=True)
@@ -443,5 +443,25 @@ async def get_tasks(
 ):
     user = await get_obj_or_404(db, User, user_id)
     params["user_id"] = user_id
-    print(params)
     return await paginate(db,Task,TaskInDB,**params)
+
+@app.put("/users/{user_id}/tasks/{task_id}/", response_model=TaskInDB, status_code=200)
+async def update_task(
+    user_id: UUID4,
+    task_id: UUID4,
+    update_task: TaskUpdate,
+    _: User = Depends(current_logged_in_user),
+    db: Session = Depends(get_db)
+):
+    user = await get_obj_or_404(db, User, user_id)
+    task_db = await get_obj_or_404(db, Task, task_id)
+    if task_db.user.id != user.id:
+        raise HTTPException(status_code=403,detail={
+            "message":"You do not have permission to modify this task"
+        })
+    task_db: Task = await update_obj(db, Task, task_id, update_task)
+    if update_task.is_complete and not update_task.completed_at:
+        task_db.completed_at = datetime.now(tz=timezone.utc)
+    db.commit()
+    db.refresh(task_db)
+    return task_db
