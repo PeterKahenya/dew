@@ -186,7 +186,7 @@ async def test_welcome(client, db):
 """
 
 @pytest.mark.asyncio
-async def test_login_signup_profile(client, db):
+async def test_login_signup_profile_tasks_apis(client, db):
     user_data = {
         "name": "Testuser5",
         "email": "test.user5@example.com",
@@ -196,6 +196,7 @@ async def test_login_signup_profile(client, db):
     response = client.post("/api/signup",json=user_data)
     assert response.status_code == 201
     assert response.json()["name"] == user_data["name"]
+    user_id = response.json()["id"]
     login_data = {
         "email": "test.user5@example.com",
         "password": "klssdlkldskd",
@@ -208,3 +209,12 @@ async def test_login_signup_profile(client, db):
     response = secure_client.get("/me")
     assert response.status_code == 200
     assert response.json()["email"] == login_data["email"]
+    for i in range(100):
+        task_data = {
+            "title": f"Sample Task {i}",
+            "description":f"Sample Task {i} descr",
+            "is_complete":False
+        }
+        response = secure_client.post(f"/api/users/{user_id}/tasks",json=task_data)
+        assert response.status_code == 201
+        assert response.json()["title"] == task_data["title"]
