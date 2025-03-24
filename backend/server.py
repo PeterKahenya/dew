@@ -3,6 +3,7 @@ import uuid
 from datetime import datetime, timezone, timedelta
 from fastapi import Depends, FastAPI, HTTPException
 import jwt
+from passlib.context import CryptContext
 from sqlalchemy import Boolean, ForeignKey, String, create_engine, delete, exc, or_, select, update
 from sqlalchemy.dialects.mysql import pymysql
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship, sessionmaker
@@ -63,6 +64,15 @@ class User(Model):
         except jwt.InvalidTokenError as e:
             print(f"JWT invalid token: {token} error: {e}")
             raise HTTPException(status_code=401,detail={"message":"Invalid access token"})
+    
+    def set_password(self, password):
+        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        self.password = pwd_context.hash(password)
+        return self
+
+    def check_password(self, password):
+        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        return pwd_context.verify(password, self.password)
 
 class Task(Model):
     __tablename__ = "tasks"
@@ -134,11 +144,12 @@ class TaskInDB(ModelInDBBase):
 # CRUD Operations
 async def create_user(db: Session, user_create: UserCreate) -> Model:
     print(f"Creating User with params: {user_create.model_dump()}")
-    obj = User(**user_create.model_dump(exclude_none=True))
-    db.add(obj)
+    user = User(name=user_create.name, email=user_create.email)
+    user = user.set_password(user_create.password)
+    db.add(user)
     db.commit()
-    db.refresh(obj)
-    return obj
+    db.refresh(user)
+    return user
 
 async def create_task(db: Session, task_create: TaskCreate, user: User) -> Model:
     print(f"Creating Task with params: {task_create.model_dump()}")
