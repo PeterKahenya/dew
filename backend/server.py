@@ -2,6 +2,7 @@ from typing import Sequence
 import uuid
 from datetime import datetime, timezone, timedelta
 from fastapi import Depends, FastAPI, HTTPException
+from fastapi.responses import JSONResponse
 import jwt
 from passlib.context import CryptContext
 from sqlalchemy import Boolean, ForeignKey, String, create_engine, delete, exc, or_, select, update
@@ -240,6 +241,7 @@ class AppSettings(BaseSettings):
     mysql_user: str
     mysql_password: str
     mysql_database: str
+    secret: str
 
 settings = AppSettings()
 
@@ -340,3 +342,19 @@ async def signup(
     user_create.confirm_password = None
     user = await create_user(db, user_create)
     return user
+
+@app.post("/login", status_code=200)
+async def login(
+    user_login: UserLogin,
+    db: Session = Depends(get_db)
+):
+    user = db.execute(select(User).where(User.email == user_login.email)).scalar_one_or_none()
+    if user and user.check_password(user_login.password):
+        access_token = user.create_jwt_token(settings.secret, algorithm="HS256", expiry_seconds=3600)
+        response = JSONResponse(content={"message": "Logged In"})
+        response.set_cookie(key="access_token", value=access_token)
+        return response
+    else:
+        raise HTTPException(status_code=401,detail={
+            "message":"Invalid email or password"
+        })
