@@ -1,7 +1,7 @@
 from typing import Sequence
 import uuid
 from datetime import datetime, timezone, timedelta
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Cookie, Depends, FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 import jwt
 from passlib.context import CryptContext
@@ -358,3 +358,18 @@ async def login(
         raise HTTPException(status_code=401,detail={
             "message":"Invalid email or password"
         })
+
+def current_logged_in_user(db: Session = Depends(get_db), access_token: str = Cookie()):
+    email = User.verify_jwt_token(db, access_token, secret=settings.secret, algorithm="HS256")
+    user = db.execute(select(User).where(User.email == email)).scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=401,detail={
+            "message":"Invalid Access Token"
+        })
+    return user
+    
+@app.get("/me", response_model=UserInDB, status_code=200)
+async def profile(
+    user: User = Depends(current_logged_in_user)
+):
+    return user
