@@ -1,0 +1,60 @@
+{
+  "name": "dew_web",
+  "version": "1.0.0",
+  "description": "A smart task management app that tracks your task and that you can dialog with",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PeterKahenya/dew.git"
+  },
+  "keywords": [
+    "Task Management",
+    "Smart Planner"
+  ],
+  "author": "Peter Kahenya",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/PeterKahenya/dew/issues"
+  },
+  "homepage": "https://github.com/PeterKahenya/dew#readme",
+  "dependencies": {
+    "@mantine/charts": "^7.17.2",
+    "@mantine/code-highlight": "^7.17.2",
+    "@mantine/core": "^7.17.2",
+    "@mantine/dates": "^7.17.2",
+    "@mantine/dropzone": "^7.17.2",
+    "@mantine/form": "^7.17.2",
+    "@mantine/hooks": "^7.17.2",
+    "@mantine/modals": "^7.17.2",
+    "@mantine/notifications": "^7.17.2",
+    "@mantine/nprogress": "^7.17.2",
+    "@mantine/spotlight": "^7.17.2",
+    "@mantine/tiptap": "^7.17.2",
+    "@tiptap/extension-link": "^2.11.5",
+    "@tiptap/pm": "^2.11.5",
+    "@tiptap/react": "^2.11.5",
+    "@tiptap/starter-kit": "^2.11.5",
+    "dayjs": "^1.11.13",
+    "next": "^15.2.3",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "recharts": "^2.15.1"
+  },
+  "devDependencies": {
+    "@types/node": "22.13.13",
+    "@types/react": "19.0.12",
+    "eslint": "9.23.0",
+    "eslint-config-next": "15.2.3",
+    "postcss": "^8.5.3",
+    "postcss-preset-mantine": "^1.17.0",
+    "postcss-simple-vars": "^7.0.1",
+    "typescript": "5.8.2"
+  }
+}

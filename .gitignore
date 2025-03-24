@@ -1,2 +1,6 @@
 backend/env
 backend/llama/Llama3.2-3B-Instruct
+web/node_modules
+web/package-lock.json
+web/.next
+web/.vscode
