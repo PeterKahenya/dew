@@ -1,3 +1,4 @@
+from pkgutil import get_data
 from typing import Sequence
 import uuid
 from datetime import datetime, timezone, timedelta
@@ -126,8 +127,8 @@ class UserInDB(ModelInDBBase):
 class TaskCreate(BaseModel):
     title: str
     description: str
-    is_complete: bool | None 
-    completed_at: datetime | None
+    is_complete: bool | None  = False
+    completed_at: datetime | None = None
 
 class TaskUpdate(BaseModel):
     title: str | None = None
@@ -139,7 +140,7 @@ class TaskInDB(ModelInDBBase):
     title: str 
     description: str 
     is_complete: bool 
-    completed_at: datetime
+    completed_at: datetime | None
     user: UserInDB
 
 # CRUD Operations
@@ -152,9 +153,9 @@ async def create_user(db: Session, user_create: UserCreate) -> Model:
     db.refresh(user)
     return user
 
-async def create_task(db: Session, task_create: TaskCreate, user: User) -> Model:
+async def create_task(db: Session, task_create: TaskCreate, user: User) -> Task:
     print(f"Creating Task with params: {task_create.model_dump()}")
-    obj = Task(**task_create.model_dump())
+    obj = Task(**task_create.model_dump(exclude_none=True))
     obj.user_id = user.id
     db.add(obj)
     db.commit()
@@ -373,3 +374,13 @@ async def profile(
     user: User = Depends(current_logged_in_user)
 ):
     return user
+
+@app.post("/users/{user_id}/tasks", response_model=TaskInDB, status_code=201)
+async def add_task(
+    user_id: UUID4,
+    task_create: TaskCreate,
+    db: Session = Depends(get_db)
+):
+    user = await get_obj_or_404(db, User, user_id)
+    task = await create_task(db, task_create, user)
+    return task
