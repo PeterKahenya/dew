@@ -245,7 +245,7 @@ async def test_login_signup_profile_tasks_apis(client, db):
     response = secure_client.get(f"/api/users/{user_id}/tasks?q=samp")
     assert response.status_code == 200
     assert len(response.json()["data"]) >= 1
-
+    # update task
     task_db = db.execute(select(Task).where(Task.user_id == uuid.UUID(user_id))).scalars().first()
     task_id = str(task_db.id)
     task_update = {
@@ -258,3 +258,9 @@ async def test_login_signup_profile_tasks_apis(client, db):
     assert response.json()["title"] == task_update["title"]
     assert response.json()["is_complete"] == task_update["is_complete"]
     assert response.json()["completed_at"] != None
+
+    # delete task
+    response = secure_client.delete(f"/api/users/{user_id}/tasks/{task_id}/")
+    assert response.status_code == 204
+    task = db.execute(select(Task).where(Task.id == uuid.UUID(task_id))).scalar_one_or_none()
+    assert task is None
