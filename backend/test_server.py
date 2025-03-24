@@ -203,4 +203,8 @@ async def test_login_signup_profile(client, db):
     response = client.post("/api/login",json=login_data)
     assert response.status_code == 200
     assert response.json()["message"] == "Logged In"
-    assert response.cookies["access_token"] != None
+    assert "access_token" in response.cookies
+    secure_client = TestClient(app, cookies={"access_token":response.cookies["access_token"]})
+    response = secure_client.get("/me")
+    assert response.status_code == 200
+    assert response.json()["email"] == login_data["email"]
