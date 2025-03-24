@@ -1,8 +1,8 @@
 from pkgutil import get_data
-from typing import Sequence
+from typing import Any, Sequence
 import uuid
 from datetime import datetime, timezone, timedelta
-from fastapi import Cookie, Depends, FastAPI, HTTPException
+from fastapi import Cookie, Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
 import jwt
 from passlib.context import CryptContext
@@ -199,6 +199,9 @@ async def filter_objects(db: Session, model: Model, params: dict = {}, sort_by:s
             else:
                 column_name, condition = key, 'eq'
             column = getattr(model, column_name)
+            if isinstance(column.type, Boolean):
+                if isinstance(value, str):
+                    value = value.lower() in ('true','True', 't', 'yes', 'y', '1')
             query = query.where(CONDITION_MAP[condition](column, value))
         query = query.order_by(sort_column.asc() if sort_order == 'asc' else sort_column.desc())
         print(f"Query: {query.compile()}")
@@ -379,8 +382,66 @@ async def profile(
 async def add_task(
     user_id: UUID4,
     task_create: TaskCreate,
-    db: Session = Depends(get_db)
+    _: User = Depends(current_logged_in_user),
+    db: Session = Depends(get_db),
 ):
     user = await get_obj_or_404(db, User, user_id)
     task = await create_task(db, task_create, user)
     return task
+
+async def get_query_params(
+    request: Request,
+    page: int = Query(1, ge=1),
+    size: int = Query(10, ge=1, le=100),
+    q: str | None = None,
+) -> dict[str, Any]:
+    query_params = dict(request.query_params)
+    query_params.pop('page', None)
+    query_params.pop('size', None)
+    query_params.pop('q', None)
+    params = {
+        "page": page,
+        "size": size,
+        "q": q,
+        **query_params
+    }
+    return params
+
+async def paginate(
+                    db: Session, 
+                    model: Model,
+                    schema: BaseModel,
+                    q: str | None = None,
+                    page: int = Query(1, ge=1),
+                    size: int = Query(10, ge=1, le=100),
+                    sort_by: str = "created_at,asc",
+                    **params
+                ) -> ListResponse:
+    if q:
+        data = await search_objects(db=db, model=model,q=q)
+    elif params and len(params) > 0:
+        data = await filter_objects(db=db, model=model,params=params,sort_by=sort_by)
+    else:
+        data = await filter_objects(db=db, model=model, params={},sort_by=sort_by)
+    offset = (page - 1) * size
+    total = len(data)
+    paginated_items = data[offset:offset + size]
+    paginated_items = [schema.model_validate(item) for item in paginated_items]
+    return ListResponse(**{
+        "total": total,
+        "page": page,
+        "size": size,
+        "data": paginated_items
+    })
+
+@app.get("/users/{user_id}/tasks", response_model=ListResponse, status_code=200)
+async def get_tasks(
+    user_id: UUID4,
+    params: dict[str, Any] = Depends(get_query_params),
+    _: User = Depends(current_logged_in_user),
+    db: Session = Depends(get_db)
+):
+    user = await get_obj_or_404(db, User, user_id)
+    params["user_id"] = user_id
+    print(params)
+    return await paginate(db,Task,TaskInDB,**params)
