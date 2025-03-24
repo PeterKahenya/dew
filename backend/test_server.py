@@ -184,3 +184,15 @@ async def test_welcome(client, db):
     DELETE /api/users/{user_id}/tasks/{task_id} to delete this task
     POST /api/users/{user_id}/chat to chat with llama that will have the context of this user's tasks
 """
+
+@pytest.mark.asyncio
+async def test_login_signup_profile(client, db):
+    user_data = {
+        "name": "Testuser5",
+        "email": "test.user5@example.com",
+        "password": "klssdlkldskd",
+        "confirm_password": "klssdlkldskd"
+    }
+    response = client.post("/api/signup",json=user_data)
+    assert response.status_code == 201
+    assert response.json()["name"] == user_data["name"]
