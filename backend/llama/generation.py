@@ -16,8 +16,8 @@ from fairscale.nn.model_parallel.initialize import (
     model_parallel_is_initialized,
 )
 
-from .model import ModelArgs, Transformer
-from .tokenizer import ChatFormat, Dialog, Message, Tokenizer
+from llama.model import ModelArgs, Transformer
+from llama.tokenizer import ChatFormat, Dialog, Message, Tokenizer
 
 
 class CompletionPrediction(TypedDict, total=False):
@@ -91,9 +91,10 @@ class Llama:
             checkpoints
         ), f"Loading a checkpoint for MP={len(checkpoints)} but world size is {model_parallel_size}"
         ckpt_path = checkpoints[get_model_parallel_rank()]
-        checkpoint = torch.load(ckpt_path, map_location="cpu", weights_only=True)
+        checkpoint = torch.load(ckpt_path, map_location="cpu")
         with open(Path(ckpt_dir) / "params.json", "r") as f:
             params = json.loads(f.read())
+
         model_args: ModelArgs = ModelArgs(
             max_seq_len=max_seq_len,
             max_batch_size=max_batch_size,
@@ -102,12 +103,12 @@ class Llama:
         tokenizer = Tokenizer(model_path=tokenizer_path)
         assert model_args.vocab_size == tokenizer.n_words
         if torch.cuda.is_bf16_supported():
-            torch.set_default_dtype(torch.bfloat16)
+            torch.set_default_tensor_type(torch.cuda.BFloat16Tensor)
         else:
-            torch.set_default_dtype(torch.float16)
+            torch.set_default_tensor_type(torch.cuda.HalfTensor)
         model = Transformer(model_args)
         model.load_state_dict(checkpoint, strict=False)
-        # print(f"Loaded in {time.time() - start_time:.2f} seconds")
+        print(f"Loaded in {time.time() - start_time:.2f} seconds")
 
         return Llama(model, tokenizer)
 
@@ -151,7 +152,7 @@ class Llama:
 
         min_prompt_len = min(len(t) for t in prompt_tokens)
         max_prompt_len = max(len(t) for t in prompt_tokens)
-        assert max_prompt_len <= params.max_seq_len, f"Max prompt length {max_prompt_len} <= {params.max_seq_len}"
+        assert max_prompt_len <= params.max_seq_len
         total_len = min(params.max_seq_len, max_gen_len + max_prompt_len)
 
         pad_id = self.tokenizer.pad_id
@@ -309,7 +310,6 @@ class Llama:
         prompt_tokens = [
             self.formatter.encode_dialog_prompt(dialog) for dialog in dialogs
         ]
-        print(type(prompt_tokens),len(prompt_tokens[0]))
         generation_tokens, generation_logprobs = self.generate(
             prompt_tokens=prompt_tokens,
             max_gen_len=max_gen_len,
