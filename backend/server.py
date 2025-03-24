@@ -1,13 +1,13 @@
 from typing import Sequence
 import uuid
 from datetime import datetime
-from fastapi import HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy import Boolean, ForeignKey, String, create_engine, delete, exc, or_, select, update
 from sqlalchemy.dialects.mysql import pymysql
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship, sessionmaker
 from pydantic_settings import BaseSettings
 from pydantic import UUID4, BaseModel
-from .llama import Dialog, Llama
+from llama import Dialog, Llama
 import os
 import torch
 
@@ -35,8 +35,8 @@ class User(Model):
 class Task(Model):
     __tablename__ = "tasks"
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True,unique=True,default=uuid.uuid4)    
-    title: Mapped[str] = mapped_column(String(100),unique=False)
-    description: Mapped[str] = mapped_column(String(2000),unique=True)
+    title: Mapped[str] = mapped_column(String(100))
+    description: Mapped[str] = mapped_column(String(2000))
     is_complete: Mapped[bool] = mapped_column(Boolean, default=False)
     completed_at: Mapped[datetime | None] = mapped_column()
     created_at: Mapped[datetime] = mapped_column(default=datetime.now)
@@ -67,10 +67,10 @@ class UserCreate(BaseModel):
     confirm_password: str
 
 class UserUpdate(BaseModel):
-    name: str | None
-    email: str | None 
-    password: str | None 
-    confirm_password: str | None
+    name: str | None = None
+    email: str | None = None
+    password: str | None = None
+    confirm_password: str | None = None
 
 class UserInDB(ModelInDBBase):
     name: str
@@ -80,25 +80,25 @@ class TaskCreate(BaseModel):
     title: str
     description: str
     is_complete: bool | None 
-    completed_at: bool | None
+    completed_at: datetime | None
 
 class TaskUpdate(BaseModel):
-    title: str | None 
-    description: str | None
-    is_complete: bool | None
-    completed_at: bool | None
+    title: str | None = None
+    description: str | None = None
+    is_complete: bool | None = None
+    completed_at: datetime | None = None
 
 class TaskInDB(ModelInDBBase):
     title: str 
     description: str 
     is_complete: bool 
-    completed_at: bool
+    completed_at: datetime
     user: UserInDB
 
 # CRUD Operations
-async def create_user(db: Session, user_create: UserCreate, user: User) -> Model:
+async def create_user(db: Session, user_create: UserCreate) -> Model:
     print(f"Creating User with params: {user_create.model_dump()}")
-    obj = User(**user_create.model_dump())
+    obj = User(**user_create.model_dump(exclude_none=True))
     db.add(obj)
     db.commit()
     db.refresh(obj)
@@ -169,9 +169,9 @@ async def search_objects(db: Session, model: Model, q: str) -> Sequence[Model]:
         query = query.where(or_(*conditions))
     return db.scalars(query).all()
 
-async def update_user(db: Session, model: Model, obj_id: UUID4, obj_update: UserUpdate|TaskUpdate) -> User:
+async def update_obj(db: Session, model: Model, obj_id: UUID4, obj_update: UserUpdate|TaskUpdate) -> User:
     print(f"Updating {model.__tablename__} with id: {obj_id}")
-    obj = await get_obj_or_404(db, User, obj_id)
+    obj = await get_obj_or_404(db, model, obj_id)
     obj_update_cleaned = obj_update.model_dump(exclude_unset=True, exclude_none=True)
     db.execute(update(model).where(model.id == obj_id).values(**obj_update_cleaned))
     db.commit()
@@ -224,28 +224,26 @@ def initialize_llama(rank: int, world_size: int, ckpt_dir, tokenizer_path, max_s
         os.environ['WORLD_SIZE'] = str(world_size)
         os.environ['LOCAL_RANK'] = str(rank)
         os.environ['MASTER_ADDR'] = 'localhost'
-        os.environ['MASTER_PORT'] = '29500'
+        os.environ['MASTER_PORT'] = '29511'
         llama = Llama.build(
             ckpt_dir=ckpt_dir,
             tokenizer_path=tokenizer_path,
             max_seq_len=max_seq_len,
             max_batch_size=max_batch_size,
-            model_parallel_size=world_size
         )
         return llama
     finally:
         torch.distributed.destroy_process_group()
 
-llama = initialize_llama(
-    rank=0,
-    world_size=1,
-    ckpt_dir="llama/Llama3.2-3B-Instruct",
-    tokenizer_path="llama/Llama3.2-3B-Instruct/tokenizer.model",
-    max_seq_len=1024,
-    max_batch_size=1,
-)
-
 def prompt_llama(db: Session, user: User, prompt: str) -> str:
+    llama = initialize_llama(
+        rank=0,
+        world_size=1,
+        ckpt_dir="llama/Llama3.2-3B-Instruct",
+        tokenizer_path="llama/Llama3.2-3B-Instruct/tokenizer.model",
+        max_seq_len=1024,
+        max_batch_size=1,
+    )
     context_tasks = db.execute(select(Task).where(Task.user_id == user.id).order_by(Task.created_at.desc())).all()
     context_tasks_json = [task.to_dict() for task in context_tasks]
     datetime_now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -271,5 +269,27 @@ def prompt_llama(db: Session, user: User, prompt: str) -> str:
     print(results)
     return results["generation"]["content"]
 
+# APIs
+app = FastAPI(**{
+    "title":"Dew Service",
+    "debug":True, # Read this from an Environment variable
+    "root_path": "/api",
+})
 
-# API
+@app.get("/")
+async def welcome():
+    return {"message":"Welcome to dew"}
+
+@app.post("/signup", response_model=UserInDB, status_code=201)
+async def signup(
+    user_create: UserCreate,
+    db: Session = Depends(get_db)
+):
+    # TODO: Test password quality
+    if user_create.password != user_create.confirm_password:
+        raise HTTPException(status_code=400,detail={
+            "message":"Passwords do not match"
+        })
+    user_create.confirm_password = None
+    user = await create_user(db, user_create)
+    return user
