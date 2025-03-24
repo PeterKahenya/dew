@@ -1,7 +1,8 @@
 from typing import Sequence
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from fastapi import Depends, FastAPI, HTTPException
+import jwt
 from sqlalchemy import Boolean, ForeignKey, String, create_engine, delete, exc, or_, select, update
 from sqlalchemy.dialects.mysql import pymysql
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship, sessionmaker
@@ -31,6 +32,37 @@ class User(Model):
     created_at: Mapped[datetime] = mapped_column(default=datetime.now)
     updated_at: Mapped[datetime | None] = mapped_column(onupdate=datetime.now)
     tasks: Mapped[list["Task"]] = relationship("Task",back_populates="user")
+
+    def create_jwt_token(self, secret: str, algorithm: str, expiry_seconds: int) -> str:
+        """
+        Create a JWT token for the user, encoding the email and expiry time and return it
+        """
+        print(f"Creating JWT token for user {self.name}")
+        expire = datetime.now(timezone.utc) + timedelta(seconds=expiry_seconds)
+        payload = {
+            "sub": self.email,
+            "exp": expire
+        }
+        return jwt.encode(payload=payload,key=secret,algorithm=algorithm)
+    
+    @staticmethod
+    def verify_jwt_token(db: Session, token: str, secret: str, algorithm) -> tuple[str,str,str] | None:
+        """
+            Verify the JWT token and return the email
+        """
+        print(f"Verifying JWT token {token}")
+        try:
+            payload = jwt.decode(jwt=token,key=secret,algorithms=[algorithm],options={"verify_exp":True,"verify_signature":True,"required":["exp","sub"]})
+            return payload.get("sub",None)
+        except jwt.InvalidAlgorithmError:
+            print(f"JWT token invalid algorithm: {algorithm} on token: {token}")
+            raise HTTPException(status_code=401,detail={"message":"Invalid access token"})
+        except jwt.ExpiredSignatureError:
+            print(f"JWT expired signature on token: {token}")
+            raise HTTPException(status_code=401,detail={"message":"Access Token expired"})
+        except jwt.InvalidTokenError as e:
+            print(f"JWT invalid token: {token} error: {e}")
+            raise HTTPException(status_code=401,detail={"message":"Invalid access token"})
 
 class Task(Model):
     __tablename__ = "tasks"
