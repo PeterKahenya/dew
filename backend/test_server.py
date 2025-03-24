@@ -174,4 +174,13 @@ async def test_welcome(client, db):
     assert response.status_code == 200
     assert response.json()["message"] == "Welcome to dew"
 
-
+""""
+    POST /api/signup to create a user
+    POST /api/login to log in a user, 
+    GET /api/me to get the current logged in user, 
+    GET /api/users/{user_id}/tasks to filter,search the user's tasks
+    POST /api/users/{user_id}/tasks to create a task for this user
+    PUT/PATCH /api/users/{user_id}/tasks/{task_id} to update this task
+    DELETE /api/users/{user_id}/tasks/{task_id} to delete this task
+    POST /api/users/{user_id}/chat to chat with llama that will have the context of this user's tasks
+"""
