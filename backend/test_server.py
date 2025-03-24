@@ -196,3 +196,10 @@ async def test_login_signup_profile(client, db):
     response = client.post("/api/signup",json=user_data)
     assert response.status_code == 201
     assert response.json()["name"] == user_data["name"]
+    login_data = {
+        "email": "test.user5@example.com",
+        "password": "klssdlkldskd",
+    }
+    response = client.post("/api/login",json=login_data)
+    assert response.status_code == 200
+    assert response.json()["message"] == "Logged In"
