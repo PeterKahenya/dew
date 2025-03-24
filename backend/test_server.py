@@ -178,7 +178,7 @@ async def test_welcome(client, db):
     POST /api/signup to create a user
     POST /api/login to log in a user, 
     GET /api/me to get the current logged in user, 
-    GET /api/users/{user_id}/tasks to filter,search the user's tasks
+    GET /api/users/{user_id}/tasks to filter,search, paginate the user's tasks
     POST /api/users/{user_id}/tasks to create a task for this user
     PUT/PATCH /api/users/{user_id}/tasks/{task_id} to update this task
     DELETE /api/users/{user_id}/tasks/{task_id} to delete this task
@@ -218,3 +218,30 @@ async def test_login_signup_profile_tasks_apis(client, db):
         response = secure_client.post(f"/api/users/{user_id}/tasks",json=task_data)
         assert response.status_code == 201
         assert response.json()["title"] == task_data["title"]
+    # paginate
+    response = secure_client.get(f"/api/users/{user_id}/tasks/?page=1&size=1")
+    assert response.status_code == 200
+    assert len(response.json()["data"]) == 1
+    assert response.json()["total"] >= 1
+    assert response.json()["page"] == 1
+    assert response.json()["size"] == 1
+    response = secure_client.get(f"/api/users/{user_id}/tasks/?page=2&size=1")
+    assert response.status_code == 200
+    assert len(response.json()["data"]) == 1
+    assert response.json()["total"] >= 1
+    assert response.json()["page"] == 2
+    assert response.json()["size"] == 1
+    response = secure_client.get(f"/api/users/{user_id}/tasks/?page=2&size=2")
+    assert response.status_code == 200
+    assert len(response.json()["data"]) == 2
+    assert response.json()["total"] >= 1
+    assert response.json()["page"] == 2
+    assert response.json()["size"] == 2
+    # Filters
+    response = secure_client.get(f"/api/users/{user_id}/tasks?title__ilike=samp&is_complete=False")
+    assert response.status_code == 200
+    assert len(response.json()["data"]) >= 1
+    # Search
+    response = secure_client.get(f"/api/users/{user_id}/tasks?q=samp")
+    assert response.status_code == 200
+    assert len(response.json()["data"]) >= 1
