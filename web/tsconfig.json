@@ -3,7 +3,6 @@
     "baseUrl": "app/",
     "paths": {
       "@/components/*": ["components/*"],
-      "@/types/*": ["lib/types/*"],
       "@/contexts/*": ["lib/contexts/*"]
     },
     "target": "ES2017",

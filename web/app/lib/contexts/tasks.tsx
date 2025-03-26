@@ -11,12 +11,10 @@ export const fetcher = async (url: string, params?: object) => {
 }
 
 export function TasksProvider({ children, user_id }: { children: React.ReactNode, user_id: string }) {
-    const [currentFilter, setCurrentFilter] = useState<object | null>(null);
-
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const defaultParams = { created_at__gte: today.toISOString() };
-
+    const [currentFilter, setCurrentFilter] = useState<object | null>(defaultParams);
     const { data, error, isLoading } = useSWR([`/users/${user_id}/tasks`, currentFilter || defaultParams], ([url, params]) => fetcher(url, params))
 
     const createTask = async (taskCreate: TaskCreate) => {
@@ -26,7 +24,13 @@ export function TasksProvider({ children, user_id }: { children: React.ReactNode
     }
 
     const updateTask = async (task_id: string, taskUpdate: TaskUpdate) => {
-        const resp = await axios.put(`${API_BASE}/users/${user_id}/tasks/${task_id}/`, taskUpdate, { withCredentials: true })
+        const updateData = {
+            title: taskUpdate.title,
+            description: taskUpdate.description,
+            is_complete: taskUpdate.isComplete,
+            completed_at: taskUpdate.completedAt
+        }
+        const resp = await axios.put(`${API_BASE}/users/${user_id}/tasks/${task_id}/`, updateData, { withCredentials: true })
         await mutate([`/users/${user_id}/tasks`, currentFilter || defaultParams]);
         return resp
     }
@@ -41,7 +45,7 @@ export function TasksProvider({ children, user_id }: { children: React.ReactNode
         try {
             setCurrentFilter(params);
             const resp = await axios.get(`${API_BASE}/users/${user_id}/tasks`, { params, withCredentials: true });
-            await mutate([`/users/${user_id}/tasks`, params], resp.data, false);
+            await mutate([`/users/${user_id}/tasks`, params], resp.data, { revalidate: false });
         } catch (error) {
             console.error("Error filtering tasks:", error);
         }

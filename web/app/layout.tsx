@@ -1,6 +1,7 @@
 import '@mantine/core/styles.css';
 
 import { ColorSchemeScript, MantineProvider, createTheme, mantineHtmlProps } from '@mantine/core';
+import { AuthProvider } from '@/contexts/auth';
 
 export const metadata = {
     title: 'Dew App',
@@ -23,11 +24,13 @@ export default function RootLayout({
     return (
         <html lang="en" {...mantineHtmlProps}>
             <head>
-                <ColorSchemeScript />
+                <ColorSchemeScript defaultColorScheme="dark" />
             </head>
             <body>
                 <MantineProvider theme={theme} defaultColorScheme='dark'>
-                    {children}
+                    <AuthProvider>
+                        {children}
+                    </AuthProvider>
                 </MantineProvider>
             </body>
         </html>
