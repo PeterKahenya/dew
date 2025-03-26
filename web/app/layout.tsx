@@ -2,6 +2,7 @@ import '@mantine/core/styles.css';
 
 import { ColorSchemeScript, MantineProvider, createTheme, mantineHtmlProps } from '@mantine/core';
 import { AuthProvider } from '@/contexts/auth';
+import { Notifications } from '@mantine/notifications';
 
 export const metadata = {
     title: 'Dew App',
@@ -28,6 +29,7 @@ export default function RootLayout({
             </head>
             <body>
                 <MantineProvider theme={theme} defaultColorScheme='dark'>
+                    <Notifications position='top-center' />
                     <AuthProvider>
                         {children}
                     </AuthProvider>

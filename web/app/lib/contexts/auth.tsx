@@ -29,10 +29,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const signup = async (userSignup: UserSignup) => {
-        const response = axios.post(`${API_BASE}/signup`, userSignup)
+        const signupData = {
+            name: userSignup.name,
+            email: userSignup.email,
+            password: userSignup.password,
+            confirm_password: userSignup.confirmPassword,
+        }
+        const response = axios.post(`${API_BASE}/signup`, signupData)
             .then(response => response)
             .catch(error => {
                 console.log(error)
+                return error.response.data
             })
         return response
     }
@@ -43,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 return response.data
             })
             .catch(error => {
-                console.log(error.response.data)
+                return error.response.data
             })
         return response
     }
