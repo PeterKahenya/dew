@@ -44,6 +44,6 @@ export type TaskUpdate = {
 
 export type Chat = {
     role: string
-    context: string
+    content: string
 }
 
