@@ -10,12 +10,22 @@ export default function TodayPage() {
     console.log("Rendering TodayPage")
     const router = useRouter()
     const { logout, user } = useAuth()
-    const { tasks, filterTasks } = useTasks()
+    const { tasks, filterTasks, deleteTask } = useTasks()
 
     const handleLogout = async () => {
         const response = await logout()
         if (response.message === "Logged Out") {
             router.push("/login")
+        }
+    }
+
+    async function handleDelete(task_id: string) {
+        const resp = await deleteTask(task_id)
+        console.log(resp)
+        if (resp.status === 204) {
+            console.log("Successfully Deleted")
+        } else {
+            console.log("Error deleting task", resp)
         }
     }
 
@@ -31,7 +41,7 @@ export default function TodayPage() {
         </ul>
         <div>
             {tasks && tasks.data && tasks.data.length > 0 ? (
-                tasks.data.map((task: Task) => <TaskItem key={task.id} task={task} />)
+                tasks.data.map((task: Task) => <TaskItem key={task.id} task={task} user={user} handleDelete={handleDelete} />)
             ) : (
                 <p>No tasks for today</p>
             )}
