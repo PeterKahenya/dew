@@ -9,6 +9,7 @@ const API_BASE = "http://localhost:8000/api"
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User>(null)
+    const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
         getProfile()
@@ -21,13 +22,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(response.data)
             return response.data
         }).catch(error => {
-            console.log(error);
-        });
+            console.log("Error occurred during profile fetch: ", error)
+        }).finally(() => {
+            setIsLoading(false)
+        })
     }
 
-    const signup = async (UserSignup: UserSignup) => {
-        const response = axios.post(`${API_BASE}/signup`, UserSignup)
-            .then(response => response.data)
+    const signup = async (userSignup: UserSignup) => {
+        const response = axios.post(`${API_BASE}/signup`, userSignup)
+            .then(response => response)
             .catch(error => {
                 console.log(error)
             })
@@ -36,7 +39,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const login = async (userLogin: Login) => {
         const response = axios.post(`${API_BASE}/login`, userLogin, { withCredentials: true })
-            .then(response => response.data)
+            .then(response => {
+                return response.data
+            })
             .catch(error => {
                 console.log(error.response.data)
             })
@@ -45,15 +50,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const logout = async () => {
         const response = axios.post(`${API_BASE}/logout`, null, { withCredentials: true })
-            .then(response => response.data)
+            .then(response => {
+                return response.data
+            })
             .catch(error => {
                 console.log(error.response.data)
             })
         return response
     }
-
     return <AuthContext.Provider value={{ user, signup, login, getProfile, logout }}>
-        {children}
+        {!isLoading ? children : <p>Loading</p>}
     </AuthContext.Provider>
 }
 
