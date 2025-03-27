@@ -24,13 +24,7 @@ export function TasksProvider({ children, user_id }: { children: React.ReactNode
     }
 
     const updateTask = async (task_id: string, taskUpdate: TaskUpdate) => {
-        const updateData = {
-            title: taskUpdate.title,
-            description: taskUpdate.description,
-            is_complete: taskUpdate.isComplete,
-            completed_at: taskUpdate.completedAt
-        }
-        const resp = await axios.put(`${API_BASE}/users/${user_id}/tasks/${task_id}/`, updateData, { withCredentials: true })
+        const resp = await axios.put(`${API_BASE}/users/${user_id}/tasks/${task_id}/`, taskUpdate, { withCredentials: true })
         await mutate([`/users/${user_id}/tasks`, currentFilter || defaultParams]);
         return resp
     }
