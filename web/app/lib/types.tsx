@@ -2,15 +2,15 @@ export type User = {
     id: string
     name: string
     email: string
-    createdAt: string
-    updatedAt?: string
+    created_at: string
+    updated_at?: string
 }
 
 export type UserSignup = {
     name: string
     email: string
     password: string
-    confirmPassword: string
+    confirm_password: string
 }
 
 export type Login = {
@@ -22,24 +22,24 @@ export type Task = {
     id: string
     title: string
     description: string
-    isComplete: boolean
-    completedAt?: string
+    is_complete?: boolean
+    completed_at?: string,
     user_id: string
-    createdAt: string
-    updatedAt?: string
+    created_at: string
+    updated_at?: string
 }
 
 export type TaskCreate = {
     title: string
     description: string
-    isComplete: boolean
+    is_complete: boolean
 }
 
 export type TaskUpdate = {
     title?: string
     description?: string
-    isComplete?: boolean
-    completedAt?: string
+    is_complete?: boolean
+    completed_at?: string
 }
 
 export type Chat = {
