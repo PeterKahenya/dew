@@ -14,7 +14,7 @@ export default function Page() {
         name: "",
         email: "",
         password: "",
-        confirmPassword: ""
+        confirm_password: ""
     })
     const router = useRouter()
 
@@ -79,8 +79,8 @@ export default function Page() {
                 label="Confirm Password"
                 placeholder="*************"
                 required
-                value={user.confirmPassword}
-                onChange={(e) => setUser({ ...user, confirmPassword: e.target.value })}
+                value={user.confirm_password}
+                onChange={(e) => setUser({ ...user, confirm_password: e.target.value })}
             />
 
             <Button fullWidth mt="xl" onClick={handleSignup}>
