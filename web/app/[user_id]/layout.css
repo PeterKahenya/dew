@@ -6,4 +6,6 @@
 .content {
   flex-grow: 1;
   padding: 50px;
+  height: 100vh;
+  overflow-y: auto;
 }
