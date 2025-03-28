@@ -3,17 +3,18 @@ from typing import Any, Sequence
 import uuid
 from datetime import datetime, timezone, timedelta
 from fastapi import Cookie, Depends, FastAPI, HTTPException, Query, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import jwt
 from passlib.context import CryptContext
 from sqlalchemy import Boolean, ForeignKey, String, create_engine, delete, exc, or_, select, update
-from sqlalchemy.dialects.mysql import pymysql
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship, sessionmaker
 from pydantic_settings import BaseSettings
 from pydantic import UUID4, BaseModel
 from llama import Dialog, Llama
 import os
 import torch
+import pymysql
 
 # Models
 class Model(DeclarativeBase):
@@ -297,13 +298,13 @@ llama = initialize_llama(
         world_size=1,
         ckpt_dir="llama/Llama3.2-3B-Instruct",
         tokenizer_path="llama/Llama3.2-3B-Instruct/tokenizer.model",
-        max_seq_len=1024,
+        max_seq_len=2048,
         max_batch_size=1,
     )
 
 def prompt_llama(context_tasks: list[dict], prompt: str) -> str:
     datetime_now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    system_prompt = f"You are my assistant for a task management app called Dew. Below are my most recent tasks in JSON format: {str(context_tasks)}. Right now it is: {datetime_now}"
+    system_prompt = f"You are my assistant for a task management app called Dew. Please respond in a format that's easy to read. Below are my most recent tasks in JSON format: {str(context_tasks)}. The time right now is: {datetime_now}."
     dialogs: list[Dialog] = [
         [
             {
@@ -331,6 +332,13 @@ app = FastAPI(**{
     "debug":True, # Read this from an Environment variable
     "root_path": "/api",
 })
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 async def welcome():
@@ -342,6 +350,7 @@ async def signup(
     db: Session = Depends(get_db)
 ):
     # TODO: Test password quality
+    # TODO: Handle pymysql.err.IntegrityError
     if user_create.password != user_create.confirm_password:
         raise HTTPException(status_code=400,detail={
             "message":"Passwords do not match"
@@ -374,6 +383,29 @@ def current_logged_in_user(db: Session = Depends(get_db), access_token: str = Co
             "message":"Invalid Access Token"
         })
     return user
+
+@app.post("/logout", status_code=200)
+async def login(
+    user: User = Depends(current_logged_in_user),
+    db: Session = Depends(get_db),
+):
+    user = db.execute(select(User).where(User.email == user.email)).scalar_one_or_none()
+    if user:
+        response = JSONResponse(content={"message": "Logged Out"})
+        response.set_cookie(
+            key="access_token",
+            value=None,
+            httponly=True,
+            secure=True,
+            samesite="Lax",
+            path="/",
+            expires=0
+        )
+        return response
+    else:
+        raise HTTPException(status_code=401,detail={
+            "message":"Invalid Session. Please login"
+        })
     
 @app.get("/me", response_model=UserInDB, status_code=200)
 async def profile(
@@ -496,6 +528,6 @@ async def chat(
 ):
     user = await get_obj_or_404(db, User, user_id)
     tasks = db.execute(select(Task).where(Task.user_id == user.id).order_by(Task.created_at.desc())).scalars()
-    context_tasks = [task.to_dict() for task in tasks]
+    context_tasks = [task.to_dict() for task in tasks][:3]
     llama_response = prompt_llama(context_tasks, prompt.content)
     return ChatDialogMessage(role="assistant",content=llama_response)
