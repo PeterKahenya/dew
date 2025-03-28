@@ -1,19 +1,17 @@
 "use client"
+import TaskForm from "@/components/TaskForm"
 import { useTasks } from "@/contexts/tasks"
+import { Box, Button, Checkbox, Container, Divider, Flex, Text, Textarea, TextInput } from "@mantine/core"
+import { IconPencil } from "@tabler/icons-react"
+import { TaskCreate } from "lib/types"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 export default function Page() {
-    const [task, setTask] = useState({
-        title: "",
-        description: "",
-        isComplete: false
-    })
     const { createTask } = useTasks()
     const router = useRouter()
 
-    async function handleSave(e) {
-        e.preventDefault()
+    async function handleSave(task: TaskCreate) {
         const resp = await createTask(task)
         console.log(resp, resp.status, resp.data)
         if (resp.status === 201) {
@@ -23,13 +21,7 @@ export default function Page() {
             console.log("An error occurred ", resp)
         }
     }
-    return <div>
-        <h1>New Task Page</h1>
-        <form>
-            <input type="text" value={task.title} onChange={(e) => setTask({ ...task, title: e.target.value })} placeholder="Task Title" />
-            <textarea value={task.description} onChange={(e) => setTask({ ...task, description: e.target.value })} placeholder="Task Description" />
-            <input type="checkbox" checked={task.isComplete} onChange={(e) => setTask({ ...task, isComplete: e.target.checked })} />
-            <button onClick={handleSave}>Save</button>
-        </form>
-    </div>
+    return <>
+        <TaskForm handleSave={handleSave} />
+    </>
 }
