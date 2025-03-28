@@ -11,9 +11,7 @@ export const fetcher = async (url: string, params?: object) => {
 }
 
 export function TasksProvider({ children, user_id }: { children: React.ReactNode, user_id: string }) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const defaultParams = { created_at__gte: today.toISOString() };
+    const defaultParams = { sort_by: "created_at,desc" };
     const [currentFilter, setCurrentFilter] = useState<object | null>(defaultParams);
     const { data, error, isLoading } = useSWR([`/users/${user_id}/tasks`, currentFilter || defaultParams], ([url, params]) => fetcher(url, params))
 
@@ -39,7 +37,8 @@ export function TasksProvider({ children, user_id }: { children: React.ReactNode
         try {
             setCurrentFilter(params);
             const resp = await axios.get(`${API_BASE}/users/${user_id}/tasks`, { params, withCredentials: true });
-            await mutate([`/users/${user_id}/tasks`, params], resp.data, { revalidate: false });
+            await mutate([`/users/${user_id}/tasks`, params], resp.data, { revalidate: true });
+            return resp.data
         } catch (error) {
             console.error("Error filtering tasks:", error);
         }
