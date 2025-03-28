@@ -1,5 +1,5 @@
 import '@mantine/core/styles.css';
-
+import '@mantine/dates/styles.css';
 import { ColorSchemeScript, MantineProvider, createTheme, mantineHtmlProps } from '@mantine/core';
 import { AuthProvider } from '@/contexts/auth';
 import { Notifications } from '@mantine/notifications';
