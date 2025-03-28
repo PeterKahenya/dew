@@ -2,22 +2,31 @@
 import TaskItem from "@/components/TaskItem"
 import { useAuth } from "@/contexts/auth"
 import { useTasks } from "@/contexts/tasks"
+import { Box, Button, Divider, Flex, Title } from "@mantine/core"
+import { IconPlus } from "@tabler/icons-react"
 import { Task } from "lib/types"
 import { useRouter } from "next/navigation"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
+
+function getTodaysDateISO() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today.toISOString()
+}
 
 export default function TodayPage() {
-    console.log("Rendering TodayPage")
     const router = useRouter()
     const { logout, user } = useAuth()
     const { tasks, filterTasks, deleteTask } = useTasks()
+    const [filters, setFilters] = useState({
+        sort_by: "created_at,desc",
+        created_at__gte: getTodaysDateISO()
+    })
 
-    const handleLogout = async () => {
-        const response = await logout()
-        if (response.message === "Logged Out") {
-            router.push("/login")
-        }
-    }
+    useEffect(() => {
+        console.log("TodayPage useEffect, filtering for only today's tasks")
+        filterTasks(filters)
+    }, [filters])
 
     async function handleDelete(task_id: string) {
         const resp = await deleteTask(task_id)
@@ -30,21 +39,29 @@ export default function TodayPage() {
     }
 
     return <div>
-        <h1>Today View</h1>
-        <h2>Welcome back {user.name}</h2>
-        <button onClick={() => router.push("new")}>New Task</button>
-        <ul>
-            <li><a href="/today">Today</a></li>
-            <li><a href="tasks">All Tasks</a></li>
-            <li><a href="/chat">Chat</a></li>
-            <button onClick={handleLogout}>Logout</button>
-        </ul>
         <div>
-            {tasks && tasks.data && tasks.data.length > 0 ? (
-                tasks.data.map((task: Task) => <TaskItem key={task.id} task={task} user={user} handleDelete={handleDelete} />)
-            ) : (
-                <p>No tasks for today</p>
-            )}
+            <Title>Welcome back <br /><strong>{user.name.toUpperCase()}</strong></Title>
+            <Flex direction={{ base: 'column', sm: 'row' }} justify={{ sm: 'flex-end' }} gap={{ base: 'xl', sm: 'xl' }} m={10}>
+                <Button onClick={() => router.push("new")} leftSection={<IconPlus size={14} />} >New Task</Button>
+            </Flex>
+            <Divider
+                my="xs"
+                variant="dashed"
+                labelPosition="center"
+                label={
+                    <>
+                        {"🙌"}
+                        <Box ml={5}>Your tasks for today</Box>
+                    </>
+                }
+            />
+            <Box>
+                {tasks && tasks.data && tasks.data.length > 0 ? (
+                    tasks.data.map((task: Task) => <TaskItem key={task.id} task={task} user={user} handleDelete={handleDelete} />)
+                ) : (
+                    <p>No tasks for today</p>
+                )}
+            </Box>
         </div>
     </div>
 }

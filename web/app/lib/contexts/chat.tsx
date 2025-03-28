@@ -7,16 +7,26 @@ const API_BASE = "http://localhost:8000/api"
 
 export function ChatProvider({ children, user_id }: { children: React.ReactNode, user_id: string }) {
     const [chats, setChats] = useState<Chat[]>([{
-        role: "system",
+        role: "assistant",
         content: "Welcome to dew Chat. How may I help you today?"
     }])
 
+    const [isThinking, setIsThinking] = useState(false)
+
     const prompt = async (chat: Chat) => {
-        const resp = await axios.post(`${API_BASE}/users/${user_id}/chat`, chat, { withCredentials: true })
-        if (resp.status === 200 && resp.data) setChats([...chats, resp.data])
+        setIsThinking(true)
+        setChats([...chats, { role: "user", content: chat.content }])
+        axios.post(`${API_BASE}/users/${user_id}/chat`, chat, { withCredentials: true }).then(resp => {
+            if (resp.status === 200 && resp.data) {
+                setChats(chats => [...chats, resp.data])
+            }
+        }).finally(() => {
+            setIsThinking(false)
+        })
+
     }
 
-    return <ChatContext.Provider value={{ chats, prompt }}>
+    return <ChatContext.Provider value={{ chats, prompt, isThinking }}>
         {children}
     </ChatContext.Provider>
 }
