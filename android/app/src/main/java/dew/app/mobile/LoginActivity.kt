@@ -15,7 +15,7 @@ import dagger.hilt.EntryPoint
 import dew.app.mobile.presentation.ui.theme.DewTheme
 
 @EntryPoint
-class LoginActivity : ComponentActivity() {
+class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
