@@ -25,7 +25,7 @@ class TasksRepositoryImpl @Inject constructor(
         if (auth == null) {
             throw Exception("Not authenticated")
         } else {
-            val apiTask = api.createTask(auth.userId, taskCreate)
+            val apiTask = api.createTask("Bearer ${auth.accessToken}",auth.userId, taskCreate)
             tasksDao.insert(apiTask.toDbTask())
             return tasksDao.getById(apiTask.id) ?: throw Exception("Task not found")
         }
@@ -36,7 +36,7 @@ class TasksRepositoryImpl @Inject constructor(
         if (auth == null) {
             throw Exception("Not authenticated")
         } else {
-            val apiTask = api.updateTask(auth.userId, taskId, taskUpdate)
+            val apiTask = api.updateTask("Bearer ${auth.accessToken}",auth.userId, taskId, taskUpdate)
             var dbTask = tasksDao.getById(taskId)
             if (dbTask == null) {
                 tasksDao.insert(apiTask.toDbTask())
@@ -54,7 +54,7 @@ class TasksRepositoryImpl @Inject constructor(
         if (auth == null) {
             throw Exception("Not authenticated")
         } else {
-            api.deleteTask(auth.userId, taskId)
+            api.deleteTask("Bearer ${auth.accessToken}",auth.userId, taskId)
             if (tasksDao.getById(taskId) != null) {
                 tasksDao.delete(taskId)
             }
@@ -66,7 +66,7 @@ class TasksRepositoryImpl @Inject constructor(
         if (auth == null) {
             throw Exception("Not authenticated")
         } else {
-            val apiTasks = api.filterTasks()
+            val apiTasks = api.filterTasks("Bearer ${auth.accessToken}",)
             for (task in apiTasks) {
                 if (tasksDao.getById(task.id) == null) {
                     tasksDao.insert(task.toDbTask())

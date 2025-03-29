@@ -35,9 +35,15 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun login(userLogin: UserLogin): Auth {
         println("AuthRepositoryImpl Login Request: $userLogin.email")
         val loginResponse = api.login(userLogin)
+        println("AuthRepositoryImpl Login Response: $loginResponse")
         if (loginResponse.message == "Logged In"){
-            val userProfile = api.profile()
-            val auth = Auth(userProfile.id)
+            val userProfile = api.profile("Bearer ${loginResponse.accessToken}")
+            val auth = Auth(
+                userId = userProfile.id,
+                email = userProfile.email,
+                accessToken = loginResponse.accessToken,
+                name = userProfile.name
+            )
             ds.saveAuth(auth)
             return auth
         }else{
@@ -50,7 +56,12 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     override suspend fun logout() {
-        api.logout()
+        val localAuth = ds.getAuth()
+        if (localAuth == null){
+            throw Exception("No Local Auth")
+        }else{
+            api.logout("Bearer ${localAuth.accessToken}")
+        }
     }
 
 }

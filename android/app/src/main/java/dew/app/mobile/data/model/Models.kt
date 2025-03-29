@@ -28,6 +28,7 @@ data class UserLogin(
 
 data class UserLoginResponse(
     val message: String,
+    @SerializedName("access_token")
     val accessToken: String
 )
 

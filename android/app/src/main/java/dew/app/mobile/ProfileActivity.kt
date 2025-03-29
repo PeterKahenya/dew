@@ -9,22 +9,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
 import dagger.hilt.EntryPoint
 import dagger.hilt.android.AndroidEntryPoint
-import dew.app.mobile.presentation.login.LoginScreen
-import dew.app.mobile.presentation.login.LoginViewModel
 import dew.app.mobile.presentation.ui.theme.DewTheme
 
 @AndroidEntryPoint
-class LoginActivity : ComponentActivity() {
+class ProfileActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             DewTheme {
-                val viewModel = hiltViewModel<LoginViewModel>()
-                LoginScreen(viewModel)
+                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    Text(text = "Hello Profile",modifier = Modifier.padding(innerPadding))
+                }
             }
         }
     }
