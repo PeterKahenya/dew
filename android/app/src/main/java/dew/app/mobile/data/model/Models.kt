@@ -1,6 +1,7 @@
 package dew.app.mobile.data.model
 
 import com.google.gson.annotations.SerializedName
+import dew.app.mobile.data.source.DbTask
 
 data class User(
     val id: String,
@@ -45,6 +46,18 @@ data class Task(
     val updatedAt: String?
 )
 
+fun Task.toDbTask(): DbTask {
+    return DbTask(
+        id = this.id,
+        title = this.title,
+        description = this.description,
+        isComplete = this.isCompleted,
+        completedAt = this.completedAt,
+        createdAt = this.createdAt,
+        updatedAt = this.updatedAt ?: ""
+    )
+}
+
 data class TaskCreate(
     val title: String,
     val description: String,
@@ -66,4 +79,8 @@ data class TaskUpdate(
 data class Chat(
     val role: String,
     val content: String
+)
+
+data class Auth(
+    val userId: String,
 )

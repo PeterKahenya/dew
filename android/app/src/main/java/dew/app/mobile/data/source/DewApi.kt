@@ -1,7 +1,9 @@
 package dew.app.mobile.data.source
 
 import dew.app.mobile.data.model.Chat
+import dew.app.mobile.data.model.Task
 import dew.app.mobile.data.model.TaskCreate
+import dew.app.mobile.data.model.TaskUpdate
 import dew.app.mobile.data.model.User
 import dew.app.mobile.data.model.UserLogin
 import dew.app.mobile.data.model.UserLoginResponse
@@ -22,22 +24,22 @@ interface DewApi{
     suspend fun login(@Body user: UserLogin): UserLoginResponse
 
     @GET("me")
-    suspend fun profile()
+    suspend fun profile(): User
 
     @POST("logout")
     suspend fun logout()
 
     @POST("{userId}/tasks")
-    suspend fun createTask(@Path("userId") userId:String, @Body task: TaskCreate): User
+    suspend fun createTask(@Path("userId") userId:String, @Body task: TaskCreate): Task
 
     @PUT("{userId}/tasks/{taskId}")
-    suspend fun updateTask(@Path("userId") userId:String, @Path("taskId") taskId:String, @Body task: TaskCreate): User
+    suspend fun updateTask(@Path("userId") userId:String, @Path("taskId") taskId:String, @Body task: TaskUpdate): Task
 
     @DELETE("{userId}/tasks/{taskId}")
-    suspend fun deleteTask()
+    suspend fun deleteTask(@Path("userId") userId:String, @Path("taskId") taskId:String,)
 
     @GET("{userId}/tasks")
-    suspend fun filterTasks()
+    suspend fun filterTasks(): List<Task>
 
     @POST("{userId}/chat")
     suspend fun chat(@Path("userId") userId: String, @Body chat: Chat): Chat
