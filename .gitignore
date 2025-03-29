@@ -1,5 +1,8 @@
 backend/env
 backend/llama/Llama3.2-3B-Instruct
+backend/llama/Llama3.2-1B-Instruct
+backend/llama/Llama3.2-1B-Instruct-int4-qlora-eo8
+backend/llama/Llama3.2-1B-Instruct-int4-spinquant-eo8
 web/node_modules
 web/package-lock.json
 web/.next
