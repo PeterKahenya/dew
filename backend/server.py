@@ -2,9 +2,12 @@ from pkgutil import get_data
 from typing import Any, Sequence
 import uuid
 from datetime import datetime, timezone, timedelta
-from fastapi import Cookie, Depends, FastAPI, HTTPException, Query, Request
+from fastapi import Cookie, Depends, FastAPI, HTTPException, Header, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.security import OAuth2PasswordBearer
+from fastapi.security.utils import get_authorization_scheme_param
+from httpx import request
 import jwt
 from passlib.context import CryptContext
 from sqlalchemy import Boolean, ForeignKey, String, create_engine, delete, exc, or_, select, update
@@ -367,7 +370,7 @@ async def login(
     user = db.execute(select(User).where(User.email == user_login.email)).scalar_one_or_none()
     if user and user.check_password(user_login.password):
         access_token = user.create_jwt_token(settings.secret, algorithm="HS256", expiry_seconds=3600)
-        response = JSONResponse(content={"message": "Logged In"})
+        response = JSONResponse(content={"message": "Logged In","access_token":access_token})
         response.set_cookie(key="access_token", value=access_token)
         return response
     else:
@@ -375,7 +378,14 @@ async def login(
             "message":"Invalid email or password"
         })
 
-def current_logged_in_user(db: Session = Depends(get_db), access_token: str = Cookie()):
+def current_logged_in_user(request:Request, db: Session = Depends(get_db)):
+    scheme,param = get_authorization_scheme_param(request.headers.get("Authorization",None))
+    access_token = param if scheme.lower() == "bearer" else None
+    cookie_token = request.cookies.get("access_token")
+    if cookie_token:
+        access_token = cookie_token  # Use the token from the cookie
+    if not access_token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
     email = User.verify_jwt_token(db, access_token, secret=settings.secret, algorithm="HS256")
     user = db.execute(select(User).where(User.email == email)).scalar_one_or_none()
     if not user:
