@@ -66,4 +66,7 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    // Retrofit API call and converter libraries
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
 }
