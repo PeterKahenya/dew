@@ -27,7 +27,8 @@ data class UserLogin(
 )
 
 data class UserLoginResponse(
-    val message: String
+    val message: String,
+    val accessToken: String
 )
 
 data class Task(
@@ -83,4 +84,8 @@ data class Chat(
 
 data class Auth(
     val userId: String,
+    @SerializedName("access_token")
+    val accessToken: String,
+    val email: String,
+    val name: String
 )
