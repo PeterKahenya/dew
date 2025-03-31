@@ -24,8 +24,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dew.app.mobile.CockpitActivity
 import dew.app.mobile.LoginActivity
-import dew.app.mobile.TodayActivity
 
 @Composable
 fun WelcomeScreen(viewModel: WelcomeViewModel) {
@@ -50,7 +50,7 @@ fun WelcomeScreen(viewModel: WelcomeViewModel) {
             context.startActivity(
                 Intent(
                     context,
-                    TodayActivity::class.java
+                    CockpitActivity::class.java
                 )
             )
         } else {
