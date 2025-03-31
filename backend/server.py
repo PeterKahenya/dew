@@ -369,8 +369,8 @@ async def login(
 ):
     user = db.execute(select(User).where(User.email == user_login.email)).scalar_one_or_none()
     if user and user.check_password(user_login.password):
-        access_token = user.create_jwt_token(settings.secret, algorithm="HS256", expiry_seconds=3600)
-        response = JSONResponse(content={"message": "Logged In","access_token":access_token})
+        access_token = user.create_jwt_token(settings.secret, algorithm="HS256", expiry_seconds=7200)
+        response = JSONResponse(content={"message": "Logged In","access_token":access_token,"expiry_seconds":7200})
         response.set_cookie(key="access_token", value=access_token)
         return response
     else:
@@ -490,7 +490,7 @@ async def get_tasks(
     params["user_id"] = user_id
     return await paginate(db,Task,TaskInDB,**params)
 
-@app.put("/users/{user_id}/tasks/{task_id}/", response_model=TaskInDB, status_code=200)
+@app.put("/users/{user_id}/tasks/{task_id}", response_model=TaskInDB, status_code=200)
 async def update_task(
     user_id: UUID4,
     task_id: UUID4,
