@@ -29,19 +29,19 @@ data class DbTask(
 @Dao
 interface TasksDao{
     @Query("SELECT * FROM dbtask")
-    fun getAll(): List<DbTask>
+    suspend fun getAll(): List<DbTask>
 
     @Query("SELECT * FROM dbtask WHERE id = :id")
-    fun getById(id: String): DbTask?
+    suspend fun getById(id: String): DbTask?
 
     @Insert
-    fun insert(task: DbTask)
+    suspend fun insert(task: DbTask)
 
     @Update
-    fun update(task: DbTask)
+    suspend fun update(task: DbTask)
 
     @Query("DELETE FROM dbtask WHERE id = :id")
-    fun delete(id: String)
+    suspend fun delete(id: String)
 }
 
 @Database(entities = [DbTask::class], version = 1)

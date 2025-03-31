@@ -20,24 +20,19 @@ class AuthRepositoryImpl @Inject constructor(
     private val ds: DewDataStore
 ): AuthRepository {
     override suspend fun auth(): Auth? {
-        println("AuthRepositoryImpl Auth")
-        val localAuth = ds.getAuth()
-        println("AuthRepositoryImpl LocalAuth: $localAuth")
-        if (localAuth != null){
-            println("AuthRepositoryImpl Auth not null")
-            return localAuth
-        }else{
-            println("AuthRepositoryImpl No LocalAuth, you may want to redirect to login screen")
-            return null
-        }
+        return ds.getAuth()
     }
 
     override suspend fun login(userLogin: UserLogin): Auth {
-        println("AuthRepositoryImpl Login Request: $userLogin.email")
         val loginResponse = api.login(userLogin)
         if (loginResponse.message == "Logged In"){
-            val userProfile = api.profile()
-            val auth = Auth(userProfile.id)
+            val userProfile = api.profile("Bearer ${loginResponse.accessToken}")
+            val auth = Auth(
+                userId = userProfile.id,
+                email = userProfile.email,
+                accessToken = loginResponse.accessToken,
+                name = userProfile.name
+            )
             ds.saveAuth(auth)
             return auth
         }else{
@@ -50,7 +45,12 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     override suspend fun logout() {
-        api.logout()
+        val localAuth = ds.getAuth()
+        if (localAuth == null){
+            throw Exception("No Local Auth")
+        }else{
+            api.logout("Bearer ${localAuth.accessToken}")
+        }
     }
 
 }

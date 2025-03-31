@@ -25,7 +25,7 @@ class TasksRepositoryImpl @Inject constructor(
         if (auth == null) {
             throw Exception("Not authenticated")
         } else {
-            val apiTask = api.createTask(auth.userId, taskCreate)
+            val apiTask = api.createTask("Bearer ${auth.accessToken}",auth.userId, taskCreate)
             tasksDao.insert(apiTask.toDbTask())
             return tasksDao.getById(apiTask.id) ?: throw Exception("Task not found")
         }
@@ -36,7 +36,7 @@ class TasksRepositoryImpl @Inject constructor(
         if (auth == null) {
             throw Exception("Not authenticated")
         } else {
-            val apiTask = api.updateTask(auth.userId, taskId, taskUpdate)
+            val apiTask = api.updateTask("Bearer ${auth.accessToken}",auth.userId, taskId, taskUpdate)
             var dbTask = tasksDao.getById(taskId)
             if (dbTask == null) {
                 tasksDao.insert(apiTask.toDbTask())
@@ -44,6 +44,7 @@ class TasksRepositoryImpl @Inject constructor(
             } else {
                 tasksDao.update(apiTask.toDbTask())
                 dbTask = tasksDao.getById(apiTask.id)
+                println("Task Updated in DB: $dbTask")
             }
             return dbTask ?: throw Exception("Task not found")
         }
@@ -54,7 +55,7 @@ class TasksRepositoryImpl @Inject constructor(
         if (auth == null) {
             throw Exception("Not authenticated")
         } else {
-            api.deleteTask(auth.userId, taskId)
+            api.deleteTask("Bearer ${auth.accessToken}",auth.userId, taskId)
             if (tasksDao.getById(taskId) != null) {
                 tasksDao.delete(taskId)
             }
@@ -66,8 +67,8 @@ class TasksRepositoryImpl @Inject constructor(
         if (auth == null) {
             throw Exception("Not authenticated")
         } else {
-            val apiTasks = api.filterTasks()
-            for (task in apiTasks) {
+            val apiTasks = api.filterTasks("Bearer ${auth.accessToken}",auth.userId)
+            for (task in apiTasks.data) {
                 if (tasksDao.getById(task.id) == null) {
                     tasksDao.insert(task.toDbTask())
                 } else {

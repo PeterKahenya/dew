@@ -11,9 +11,17 @@ import dew.app.mobile.data.model.UserSignup
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
+
+data class PaginatedTasks(
+    val total: Int,
+    val page: Int,
+    val size: Int,
+    val data: List<Task> = emptyList()
+)
 
 interface DewApi{
 
@@ -24,23 +32,23 @@ interface DewApi{
     suspend fun login(@Body user: UserLogin): UserLoginResponse
 
     @GET("me")
-    suspend fun profile(): User
+    suspend fun profile(@Header("Authorization") accessToken: String): User
 
     @POST("logout")
-    suspend fun logout()
+    suspend fun logout(@Header("Authorization") accessToken: String)
 
-    @POST("{userId}/tasks")
-    suspend fun createTask(@Path("userId") userId:String, @Body task: TaskCreate): Task
+    @POST("users/{userId}/tasks")
+    suspend fun createTask(@Header("Authorization") accessToken: String, @Path("userId") userId:String, @Body task: TaskCreate): Task
 
-    @PUT("{userId}/tasks/{taskId}")
-    suspend fun updateTask(@Path("userId") userId:String, @Path("taskId") taskId:String, @Body task: TaskUpdate): Task
+    @PUT("users/{userId}/tasks/{taskId}")
+    suspend fun updateTask(@Header("Authorization") accessToken: String, @Path("userId") userId:String, @Path("taskId") taskId:String, @Body task: TaskUpdate): Task
 
-    @DELETE("{userId}/tasks/{taskId}")
-    suspend fun deleteTask(@Path("userId") userId:String, @Path("taskId") taskId:String,)
+    @DELETE("users/{userId}/tasks/{taskId}")
+    suspend fun deleteTask(@Header("Authorization") accessToken: String, @Path("userId") userId:String, @Path("taskId") taskId:String,)
 
-    @GET("{userId}/tasks")
-    suspend fun filterTasks(): List<Task>
+    @GET("users/{userId}/tasks")
+    suspend fun filterTasks(@Header("Authorization") accessToken: String,@Path("userId") userId:String): PaginatedTasks
 
-    @POST("{userId}/chat")
-    suspend fun chat(@Path("userId") userId: String, @Body chat: Chat): Chat
+    @POST("users/{userId}/chat")
+    suspend fun chat(@Header("Authorization") accessToken: String, @Path("userId") userId: String, @Body chat: Chat): Chat
 }

@@ -15,7 +15,7 @@ class ChatRepositoryImpl(
         if (auth == null) {
             throw Exception("Not authenticated")
         } else {
-            return api.chat(auth.userId, chat)
+            return api.chat("Bearer ${auth.accessToken}", auth.userId, chat)
         }
     }
 }

@@ -6,22 +6,20 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.hilt.navigation.compose.hiltViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import dew.app.mobile.presentation.task.TaskScreen
+import dew.app.mobile.presentation.task.TaskViewModel
 import dew.app.mobile.presentation.ui.theme.DewTheme
-import dew.app.mobile.presentation.welcome.WelcomeScreen
-import dew.app.mobile.presentation.welcome.WelcomeViewModel
-
-
-
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class TaskActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        val taskId = intent.getStringExtra("taskId")
+        println("TaskActivity taskId: $taskId")
         setContent {
             DewTheme {
-                val viewModel = hiltViewModel<WelcomeViewModel>()
-                WelcomeScreen(viewModel)
+                val viewModel = hiltViewModel<TaskViewModel>()
+                TaskScreen(viewModel, taskId)
             }
         }
     }

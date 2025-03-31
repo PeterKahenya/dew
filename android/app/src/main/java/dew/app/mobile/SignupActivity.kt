@@ -6,22 +6,19 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.hilt.navigation.compose.hiltViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import dew.app.mobile.presentation.signup.SignupScreen
+import dew.app.mobile.presentation.signup.SignupViewModel
 import dew.app.mobile.presentation.ui.theme.DewTheme
-import dew.app.mobile.presentation.welcome.WelcomeScreen
-import dew.app.mobile.presentation.welcome.WelcomeViewModel
-
-
-
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class SignupActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             DewTheme {
-                val viewModel = hiltViewModel<WelcomeViewModel>()
-                WelcomeScreen(viewModel)
+                val viewModel = hiltViewModel<SignupViewModel>()
+                SignupScreen(viewModel)
             }
         }
     }
