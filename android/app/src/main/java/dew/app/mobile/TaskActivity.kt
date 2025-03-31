@@ -4,30 +4,23 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import dew.app.mobile.presentation.task.TaskScreen
+import dew.app.mobile.presentation.task.TaskViewModel
 import dew.app.mobile.presentation.ui.theme.DewTheme
 
 @AndroidEntryPoint
-class TodayActivity : ComponentActivity() {
+class TaskActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        val taskId = intent.getStringExtra("taskId")
+        println("TaskActivity taskId: $taskId")
         setContent {
             DewTheme {
-                Text(text = "Today")
+                val viewModel = hiltViewModel<TaskViewModel>()
+                TaskScreen(viewModel, taskId)
             }
         }
-    }
-}
-
-
-@Preview
-@Composable
-fun TodayPreview() {
-    DewTheme {
-        Text(text = "Today")
     }
 }
