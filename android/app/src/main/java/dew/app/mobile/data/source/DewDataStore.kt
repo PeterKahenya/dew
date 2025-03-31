@@ -32,7 +32,6 @@ class DewDatastoreImpl(private val context: Context): DewDataStore{
     override suspend fun getAuth(): Auth? {
         try {
             val auth: Auth? = context.dataStore.data.map { preferences ->
-                println("getAuth: $preferences")
                 if (
                     preferences[userIdKey] == null
                 ) {
@@ -48,7 +47,7 @@ class DewDatastoreImpl(private val context: Context): DewDataStore{
             }.firstOrNull()
             return auth
         } catch (e: Exception) {
-            println("Dew getAuth Error: $e")
+            println("DewDatastoreImpl Dew getAuth Error: ${e.message}")
             return null
         }
     }
