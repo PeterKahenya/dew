@@ -1,7 +1,6 @@
 package dew.app.mobile.presentation.profile
 
 import android.content.Intent
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,13 +22,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Matrix
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dew.app.mobile.TodayActivity
+import dew.app.mobile.CockpitActivity
 import dew.app.mobile.data.model.Auth
 
 @Composable
@@ -67,8 +65,7 @@ fun ProfileContent(profile: Auth, profileViewModel: ProfileViewModel) {
     Text(text = profile.email)
     Spacer(modifier = Modifier.height(200.dp))
     Button(onClick = {
-        val intent = Intent(context, TodayActivity::class.java)
-        context.startActivity(intent)
+        context.startActivity(Intent(context, CockpitActivity::class.java))
     },
         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
     ){
