@@ -23,7 +23,7 @@ data class UserSignup(
 
 data class UserLogin(
     val email: String,
-    val password: String,
+    val password: String
 )
 
 data class UserLoginResponse(
@@ -77,6 +77,15 @@ data class TaskUpdate(
     @SerializedName("completed_at")
     val completedAt: String?
 )
+
+fun TaskCreate.toTaskUpdate(): TaskUpdate {
+    return TaskUpdate(
+        title = this.title,
+        description = this.description,
+        isCompleted = this.isCompleted,
+        completedAt = this.completedAt
+    )
+}
 
 data class Chat(
     val role: String,
