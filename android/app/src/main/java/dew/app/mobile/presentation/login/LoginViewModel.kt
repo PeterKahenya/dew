@@ -39,10 +39,16 @@ class LoginViewModel @Inject constructor(
                     it.copy(auth = loginAuth, isLoading = false, error = null)
                 }
             } catch (e: HttpException) {
-                val error = "Login HttpException: ${e.response()} ${e.localizedMessage}"
-                println(error)
-                _state.update {
-                    it.copy(auth = null, isLoading = false, error = error)
+
+                if (e.code() == 401) {
+                    _state.update {
+                        it.copy(auth = null, isLoading = false, error = "Invalid Credentials")
+                    }
+                } else {
+                    val error = "Login HttpException: ${e.response()} ${e.localizedMessage}"
+                    _state.update {
+                        it.copy(auth = null, isLoading = false, error = error)
+                    }
                 }
             } catch (e: IOException) {
                 val error =
