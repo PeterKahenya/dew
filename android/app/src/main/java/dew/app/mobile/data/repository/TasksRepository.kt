@@ -13,6 +13,7 @@ interface TasksRepository {
     suspend fun updateTask(taskId: String, taskUpdate: TaskUpdate): DbTask
     suspend fun deleteTask(taskId: String)
     suspend fun filterTasks(filters: Map<String, String>?): List<DbTask>
+    suspend fun getTask(taskId: String): DbTask
 }
 
 class TasksRepositoryImpl @Inject constructor(
@@ -78,6 +79,10 @@ class TasksRepositoryImpl @Inject constructor(
             }
             return tasksDao.getAllByIds(apiTasks.data.map { it.id })
         }
+    }
+
+    override suspend fun getTask(taskId: String): DbTask {
+        return tasksDao.getById(taskId)?: throw Exception("Task not found")
     }
 
 }
