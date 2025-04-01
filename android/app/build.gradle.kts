@@ -93,6 +93,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     // Kotlinx datetime
     implementation(libs.kotlinx.datetime)
+    // Markdown rendering
+    implementation(libs.compose.markdown)
 }
 kapt {
     correctErrorTypes = true
