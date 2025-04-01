@@ -26,17 +26,18 @@ class TasksViewModel @Inject constructor(
     val state: StateFlow<TasksState> = _state.asStateFlow()
 
     init {
-        getTasks()
+        val filters = mutableMapOf("created_at__gte" to "2020-01-01T00:00:00.000Z")
+        getTasks(filters)
     }
 
-    private fun getTasks() {
+    fun getTasks(filters: Map<String, String>) {
         viewModelScope.launch {
             try {
                 _state.update {
                     it.copy(isLoading = true)
                 }
-                val tasks: List<DbTask> = tasksRepository.filterTasks()
-//                println("TasksResponse: $tasks")
+                val tasks: List<DbTask> = tasksRepository.filterTasks(filters)
+                println("TasksResponse: ${tasks.size}")
                 _state.update {
                     it.copy(tasks = tasks, isLoading = false, error = null)
                 }

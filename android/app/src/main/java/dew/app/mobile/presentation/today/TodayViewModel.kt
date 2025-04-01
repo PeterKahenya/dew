@@ -1,5 +1,7 @@
 package dew.app.mobile.presentation.today
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -10,8 +12,17 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.format
+import kotlinx.datetime.toJavaLocalDateTime
+import kotlinx.datetime.toLocalDateTime
 import retrofit2.HttpException
 import java.io.IOException
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 data class TodayState(
@@ -29,13 +40,19 @@ class TodayViewModel @Inject constructor(
         getTasks()
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun getTasks() {
         viewModelScope.launch {
             try {
                 _state.update {
                     it.copy(isLoading = true)
                 }
-                val tasks: List<DbTask> = tasksRepository.filterTasks()
+                val midnightDateTime = LocalDateTime(Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date, LocalTime(0, 0, 0,0))
+                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX")
+                val formattedMidnight = formatter.format(midnightDateTime.toJavaLocalDateTime().atOffset(ZoneOffset.UTC))
+                val filters = mapOf("created_at__gte" to formattedMidnight)
+                val tasks: List<DbTask> = tasksRepository.filterTasks(filters)
+
                 _state.update {
                     it.copy(tasks = tasks, isLoading = false, error = null)
                 }

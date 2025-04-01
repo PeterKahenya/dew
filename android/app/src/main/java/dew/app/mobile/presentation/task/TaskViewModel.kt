@@ -37,7 +37,7 @@ class TaskViewModel @Inject constructor(
                 _state.update {
                     it.copy(isLoading = true)
                 }
-                val dbTasks: List<DbTask> = tasksRepository.filterTasks()
+                val dbTasks: List<DbTask> = tasksRepository.filterTasks(null)
                 val task: DbTask? = dbTasks.find { it.id == taskId }
                 _state.update {
                     it.copy(task = task, isLoading = false, error = null)

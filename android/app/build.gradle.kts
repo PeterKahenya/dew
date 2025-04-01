@@ -91,6 +91,8 @@ dependencies {
     // ViewModel
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
+    // Kotlinx datetime
+    implementation(libs.kotlinx.datetime)
 }
 kapt {
     correctErrorTypes = true

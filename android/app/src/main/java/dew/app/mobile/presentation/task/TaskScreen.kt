@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dew.app.mobile.CockpitActivity
 import dew.app.mobile.data.model.TaskCreate
 import dew.app.mobile.data.model.toTaskUpdate
 import dew.app.mobile.data.source.DbTask
@@ -63,7 +64,7 @@ fun TaskScreen(
     }
     val context: Context = LocalContext.current
     if (taskState.isCreated){
-        context.startActivity(Intent(context, TodayActivity::class.java))
+        context.startActivity(Intent(context, CockpitActivity::class.java))
     }
     Column(
         modifier = Modifier.padding(16.dp).fillMaxHeight(),

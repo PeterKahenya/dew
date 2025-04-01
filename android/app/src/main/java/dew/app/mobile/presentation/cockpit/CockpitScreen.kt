@@ -28,7 +28,7 @@ import dew.app.mobile.presentation.today.TodayViewModel
 
 @Composable
 fun CockpitScreen(){
-    var selectedTabIndex by remember { mutableIntStateOf(2) }
+    var selectedTabIndex by remember { mutableIntStateOf(1) }
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
