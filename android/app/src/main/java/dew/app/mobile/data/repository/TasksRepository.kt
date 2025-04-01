@@ -12,7 +12,8 @@ interface TasksRepository {
     suspend fun createTask(taskCreate: TaskCreate): DbTask
     suspend fun updateTask(taskId: String, taskUpdate: TaskUpdate): DbTask
     suspend fun deleteTask(taskId: String)
-    suspend fun filterTasks(): List<DbTask>
+    suspend fun filterTasks(filters: Map<String, String>?): List<DbTask>
+    suspend fun getTask(taskId: String): DbTask
 }
 
 class TasksRepositoryImpl @Inject constructor(
@@ -62,12 +63,13 @@ class TasksRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun filterTasks(): List<DbTask> {
+    override suspend fun filterTasks(filters: Map<String, String>?): List<DbTask> {
         val auth = authRepository.auth()
         if (auth == null) {
             throw Exception("Not authenticated")
         } else {
-            val apiTasks = api.filterTasks("Bearer ${auth.accessToken}",auth.userId)
+            val apiTasks = api.filterTasks("Bearer ${auth.accessToken}",auth.userId, options = filters)
+            println("API Tasks: ${apiTasks.size}")
             for (task in apiTasks.data) {
                 if (tasksDao.getById(task.id) == null) {
                     tasksDao.insert(task.toDbTask())
@@ -75,8 +77,12 @@ class TasksRepositoryImpl @Inject constructor(
                     tasksDao.update(task.toDbTask())
                 }
             }
-            return tasksDao.getAll()
+            return tasksDao.getAllByIds(apiTasks.data.map { it.id })
         }
+    }
+
+    override suspend fun getTask(taskId: String): DbTask {
+        return tasksDao.getById(taskId)?: throw Exception("Task not found")
     }
 
 }

@@ -31,6 +31,9 @@ interface TasksDao{
     @Query("SELECT * FROM dbtask")
     suspend fun getAll(): List<DbTask>
 
+    @Query("SELECT * FROM dbtask WHERE id IN (:ids)")
+    suspend fun getAllByIds(ids: List<String>): List<DbTask>
+
     @Query("SELECT * FROM dbtask WHERE id = :id")
     suspend fun getById(id: String): DbTask?
 

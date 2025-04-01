@@ -15,6 +15,8 @@ import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
+import retrofit2.http.Query
+import retrofit2.http.QueryMap
 
 data class PaginatedTasks(
     val total: Int,
@@ -47,7 +49,11 @@ interface DewApi{
     suspend fun deleteTask(@Header("Authorization") accessToken: String, @Path("userId") userId:String, @Path("taskId") taskId:String,)
 
     @GET("users/{userId}/tasks")
-    suspend fun filterTasks(@Header("Authorization") accessToken: String,@Path("userId") userId:String): PaginatedTasks
+    suspend fun filterTasks(
+        @Header("Authorization") accessToken: String,
+        @Path("userId") userId: String,
+        @QueryMap(encoded = true) options: Map<String, String>? = null
+    ): PaginatedTasks
 
     @POST("users/{userId}/chat")
     suspend fun chat(@Header("Authorization") accessToken: String, @Path("userId") userId: String, @Body chat: Chat): Chat

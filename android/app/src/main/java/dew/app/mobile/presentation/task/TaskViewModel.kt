@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dew.app.mobile.data.model.TaskCreate
+import dew.app.mobile.data.model.TaskFilters
 import dew.app.mobile.data.model.TaskUpdate
+import dew.app.mobile.data.model.toQueryMap
 import dew.app.mobile.data.repository.TasksRepository
 import dew.app.mobile.data.source.DbTask
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,8 +39,7 @@ class TaskViewModel @Inject constructor(
                 _state.update {
                     it.copy(isLoading = true)
                 }
-                val dbTasks: List<DbTask> = tasksRepository.filterTasks()
-                val task: DbTask? = dbTasks.find { it.id == taskId }
+                val task: DbTask = tasksRepository.getTask(taskId)
                 _state.update {
                     it.copy(task = task, isLoading = false, error = null)
                 }

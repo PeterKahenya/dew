@@ -99,3 +99,30 @@ data class Auth(
     val email: String,
     val name: String
 )
+
+data class TaskFilters(
+    val createdAt: String?,
+    val completedAt: String?,
+    val status: String?,
+    val q: String,
+    val sortBy: String = "created_at,asc"
+)
+
+fun TaskFilters.toQueryMap(): Map<String, String> {
+    val queryMap = mutableMapOf<String, String>()
+    if (this.createdAt != null) {
+        queryMap["created_at__gte"] = this.createdAt
+    }
+    if (this.completedAt != null) {
+        queryMap["completed_at__gte"] = this.completedAt
+    }
+    if (this.status != "all") {
+        queryMap["is_complete"] = if (this.status == "complete") "true" else "false"
+    }
+    if (this.q.isNotEmpty()) {
+        queryMap["q"] = this.q
+    }
+
+    return queryMap
+
+}
