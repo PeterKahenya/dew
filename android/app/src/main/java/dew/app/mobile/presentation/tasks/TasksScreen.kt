@@ -59,7 +59,6 @@ fun TasksScreen(viewModel: TasksViewModel) {
             )
         )
     }
-    viewModel.getTasks(filters.value.toQueryMap())
 
     val context = LocalContext.current
     Scaffold(floatingActionButton = {
@@ -77,7 +76,10 @@ fun TasksScreen(viewModel: TasksViewModel) {
     }, floatingActionButtonPosition = FabPosition.Center, topBar = {
         OutlinedTextField(
             value = filters.value.q,
-            onValueChange = {filters.value = filters.value.copy(q = it)},
+            onValueChange = {
+                filters.value = filters.value.copy(q = it)
+                viewModel.getTasks(filters.value.toQueryMap())
+                            },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(5.dp)
@@ -115,7 +117,10 @@ fun TasksScreen(viewModel: TasksViewModel) {
                     Column {
                         Row {
                             FilterChip(
-                                onClick = { filters.value = filters.value.copy(status = "complete") },
+                                onClick = {
+                                    filters.value = filters.value.copy(status = "complete")
+                                    viewModel.getTasks(filters.value.toQueryMap())
+                                          },
                                 label = { Text("Complete") },
                                 selected = filters.value.status == "complete",
                                 leadingIcon = if ( filters.value.status == "complete") {
@@ -128,7 +133,10 @@ fun TasksScreen(viewModel: TasksViewModel) {
                                 } else {null}
                             )
                             FilterChip(
-                                onClick = { filters.value = filters.value.copy(status = "pending") },
+                                onClick = {
+                                    filters.value = filters.value.copy(status = "pending")
+                                    viewModel.getTasks(filters.value.toQueryMap())
+                                          },
                                 label = { Text("Pending") },
                                 selected = filters.value.status == "pending",
                                 leadingIcon = if ( filters.value.status == "pending") {
@@ -141,7 +149,10 @@ fun TasksScreen(viewModel: TasksViewModel) {
                                 } else {null}
                             )
                             FilterChip(
-                                onClick = { filters.value = filters.value.copy(status = "all") },
+                                onClick = {
+                                    filters.value = filters.value.copy(status = "all")
+                                    viewModel.getTasks(filters.value.toQueryMap())
+                                          },
                                 label = { Text("All") },
                                 selected = filters.value.status == "all",
                                 leadingIcon = if ( filters.value.status == "all") {

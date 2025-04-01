@@ -2,6 +2,7 @@
 
 package dew.app.mobile.presentation.chat
 
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -50,6 +51,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.jeziellago.compose.markdowntext.MarkdownText
 import dew.app.mobile.data.model.Chat
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -143,11 +145,7 @@ fun MessagesList(modifier: Modifier, ml: List<Chat>, isLoading: Boolean) {
                             .background(if (isUser) Color(0xFFE5E5EA) else Color(0xFFDCF8C6))
                             .padding(5.dp)
                     ) {
-                        Text(
-                            text = it.content,
-                            fontSize = 10.sp, // Increased font size for better readability
-                            color = Color.Black // Set to black for better contrast
-                        )
+                        MarkdownText(markdown = it.content)
                     }
                 }
             }
