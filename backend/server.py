@@ -301,7 +301,7 @@ llama = initialize_llama(
         world_size=1,
         ckpt_dir="llama/Llama3.2-1B-Instruct",
         tokenizer_path="llama/Llama3.2-1B-Instruct/tokenizer.model",
-        max_seq_len=2048,
+        max_seq_len=4096,
         max_batch_size=1,
     )
 
@@ -328,6 +328,7 @@ def prompt_llama(context_tasks: list[dict], prompt: str) -> str:
     )[0] # dealing with only one batch
     print(results)
     return results["generation"]["content"]
+
 
 # APIs
 app = FastAPI(**{
@@ -536,9 +537,12 @@ async def chat(
     _: User = Depends(current_logged_in_user),
     db: Session = Depends(get_db)
 ):
-    user = await get_obj_or_404(db, User, user_id)
-    tasks = db.execute(select(Task).where(Task.user_id == user.id).order_by(Task.created_at.desc())).scalars()
-    context_tasks = [task.to_dict() for task in tasks]
-    print(len(context_tasks))
-    llama_response = prompt_llama(context_tasks, prompt.content)
-    return ChatDialogMessage(role="assistant",content=llama_response)
+    try:
+        user = await get_obj_or_404(db, User, user_id)
+        tasks = db.execute(select(Task).where(Task.user_id == user.id).order_by(Task.created_at.desc())).scalars()
+        context_tasks = [task.to_dict() for task in tasks]
+        print(f"Sending {len(context_tasks)} tasks to the LLM")
+        llama_response = prompt_llama(context_tasks, prompt.content)
+        return ChatDialogMessage(role="assistant",content=llama_response)
+    except Exception as e:
+        raise HTTPException(status_code=500,detail=f"{str(e)}")
