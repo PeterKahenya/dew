@@ -21,20 +21,16 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.automirrored.outlined.Send
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -45,7 +41,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -54,7 +49,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.jeziellago.compose.markdowntext.MarkdownText
 import dew.app.mobile.data.model.Chat
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(
     viewModel: ChatViewModel
@@ -90,24 +84,28 @@ fun MessageBox(sendMessage: (message: String) -> Unit) {
             onValueChange = {
                 message.value = it
             },
-            modifier = Modifier.weight(1f).clip(RoundedCornerShape(30.dp)).background(Color(0xFFDDDDDD)),
-            colors = TextFieldDefaults.outlinedTextFieldColors(
+            modifier = Modifier
+                        .weight(1f)
+                        .padding(10.dp)
+                        .clip(RoundedCornerShape(30.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+            colors = OutlinedTextFieldDefaults.colors(
                 unfocusedBorderColor = Color.Transparent,
                 focusedBorderColor = Color.Transparent,
                 errorBorderColor = Color.Transparent,
             ),
-            placeholder = { Text("Ask Dew AI...", fontSize = 12.sp) },
-            textStyle = TextStyle(fontSize = 12.sp), // Apply font size
+            placeholder = { Text("Ask Dew AI...", style = MaterialTheme.typography.bodyLarge)},
+            textStyle = MaterialTheme.typography.bodyLarge,
             trailingIcon = {
-                IconButton(enabled = message.value.isNotEmpty(), onClick = {
-                    sendMessage(message.value)
-                    message.value = ""
-                }
+                IconButton(
+                    enabled = message.value.isNotEmpty(),
+                    onClick = {
+                        sendMessage(message.value)
+                        message.value = ""
+                    }
                 ) {
                     if (message.value.isNotEmpty()){
-                        Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send", tint = Color(0xFF008080))
-                    } else{
-                        Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send", tint = Color.Gray)
+                        Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send", tint = MaterialTheme.colorScheme.primary)
                     }
                 }
             })
@@ -142,10 +140,10 @@ fun MessagesList(modifier: Modifier, ml: List<Chat>, isLoading: Boolean) {
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(10.dp)) // Rounded corners for the bubble
-                            .background(if (isUser) Color(0xFFE5E5EA) else Color(0xFFDCF8C6))
+                            .background(if (isUser) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface)
                             .padding(5.dp)
                     ) {
-                        MarkdownText(markdown = it.content)
+                        MarkdownText(markdown = it.content, style = MaterialTheme.typography.bodyMedium)
                     }
                 }
             }

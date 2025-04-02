@@ -53,7 +53,7 @@ fun TodayScreen(viewModel: TodayViewModel) {
                 }
             }
         },
-        floatingActionButtonPosition = FabPosition.Center
+        floatingActionButtonPosition = FabPosition.End
     ) {
         Column(modifier = Modifier.padding(it).padding(16.dp)) {
             if (tasksState.error != null) {
