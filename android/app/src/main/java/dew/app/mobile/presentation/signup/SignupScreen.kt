@@ -16,7 +16,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -65,8 +67,8 @@ fun SignupScreen(
             .background(
                 brush = Brush.linearGradient(
                     colors = listOf(
-                        Color(0xFF008080), // Start color
-                        Color(0xFF1bc455)  // End color
+                        MaterialTheme.colorScheme.primary, // Start color
+                        MaterialTheme.colorScheme.secondary  // End color
                     )
                 )
             )
@@ -77,11 +79,9 @@ fun SignupScreen(
                 .fillMaxSize()
         ) {
             Text(
-                text = "dew",
-                color = Color.White,
-                fontSize = 70.sp,
+                text = "Dew",
+                style = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.colorScheme.onPrimary, fontSize = 70.sp, fontWeight = FontWeight.Bold),
                 textAlign = TextAlign.Center,
-                fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 100.dp, bottom = 10.dp)
             )
             if (signupState.user != null) {
@@ -97,15 +97,17 @@ fun SignupScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .clip(RoundedCornerShape(30.dp))
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.onPrimary)
                     .padding(30.dp)
             ) {
                 Text(
-                    text = "Signup",
+                    text = "SIGNUP",
                     textAlign = TextAlign.Start,
-                    fontSize = 30.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Gray,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        fontSize = 30.sp,
+                        fontWeight = FontWeight.Bold
+                    ),
                     modifier = Modifier.fillMaxWidth()
                 )
                 if (signupState.isLoading) {
@@ -114,7 +116,7 @@ fun SignupScreen(
                 if (signupState.error != null) {
                     Text(
                         text = signupState.error!!,
-                        color = Color.Red
+                        color = MaterialTheme.colorScheme.error
                     )
                 }
                 OutlinedTextField(
@@ -122,48 +124,76 @@ fun SignupScreen(
                     onValueChange = {
                         signup.value = signup.value.copy(name = it)
                     },
-                    placeholder = { Text(text = "Name") },
+                    placeholder = { Text(text = "Name", color = MaterialTheme.colorScheme.onPrimary) },
                     modifier = Modifier
                         .testTag("signupNameField")
                         .fillMaxWidth()
-                        .padding(top = 20.dp)
+                        .padding(top = 30.dp)
+                        .clip(RoundedCornerShape(30.dp))
+                        .background(MaterialTheme.colorScheme.primary),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedBorderColor = Color.Transparent,
+                        focusedBorderColor = Color.Transparent,
+                        errorBorderColor = Color.Transparent,
+                    ),
                 )
                 OutlinedTextField(
                     value = signup.value.email,
                     onValueChange = {
                         signup.value = signup.value.copy(email = it)
                     },
-                    placeholder = { Text(text = "Email") },
+                    placeholder = { Text(text = "Email",color = MaterialTheme.colorScheme.onPrimary) },
                     modifier = Modifier
                         .testTag("signupEmailField")
                         .fillMaxWidth()
-                        .padding(top = 20.dp)
+                        .padding(top = 30.dp)
+                        .clip(RoundedCornerShape(30.dp))
+                        .background(MaterialTheme.colorScheme.primary),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedBorderColor = Color.Transparent,
+                        focusedBorderColor = Color.Transparent,
+                        errorBorderColor = Color.Transparent,
+                    ),
                 )
                 OutlinedTextField(
                     value = signup.value.password,
                     onValueChange = {
                         signup.value = signup.value.copy(password = it)
                     },
-                    placeholder = { Text(text = "Password") },
+                    placeholder = { Text(text = "Password",color = MaterialTheme.colorScheme.onPrimary) },
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     modifier = Modifier
                         .testTag("signupPasswordField")
                         .fillMaxWidth()
-                        .padding(top = 20.dp)
+                        .padding(top = 30.dp)
+                        .clip(RoundedCornerShape(30.dp))
+                        .background(MaterialTheme.colorScheme.primary),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedBorderColor = Color.Transparent,
+                        focusedBorderColor = Color.Transparent,
+                        errorBorderColor = Color.Transparent,
+                    ),
                 )
                 OutlinedTextField(
                     value = signup.value.confirmPassword,
                     onValueChange = {
                         signup.value = signup.value.copy(confirmPassword = it)
                     },
-                    placeholder = { Text(text = "Confirm Password") },
+                    placeholder = { Text(text = "Confirm Password", color = MaterialTheme.colorScheme.onPrimary) },
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     modifier = Modifier
                         .testTag("signupConfirmPasswordField")
                         .fillMaxWidth()
-                        .padding(top = 20.dp)
+                        .padding(top = 30.dp)
+                        .clip(RoundedCornerShape(30.dp))
+                        .background(MaterialTheme.colorScheme.primary),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedBorderColor = Color.Transparent,
+                        focusedBorderColor = Color.Transparent,
+                        errorBorderColor = Color.Transparent,
+                    ),
                 )
                 Button(
                     onClick = { viewModel.signup(signup.value) },
@@ -192,9 +222,9 @@ fun SignupScreen(
                         .testTag("signupLoginButton")
                         .width(100.dp)
                         .align(Alignment.CenterVertically),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFFFFF))
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                 ) {
-                    Text(text = "Login", color = Color.DarkGray)
+                    Text(text = "Login", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
 

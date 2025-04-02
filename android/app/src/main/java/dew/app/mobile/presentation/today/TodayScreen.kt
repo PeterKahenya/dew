@@ -3,15 +3,19 @@ package dew.app.mobile.presentation.today
 import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
@@ -26,19 +30,32 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dew.app.mobile.TaskActivity
 import dew.app.mobile.data.source.DbTask
-
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TodayScreen(viewModel: TodayViewModel) {
     val tasksState by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    // get current month, day and year
+    val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+    val month = now.month.name.uppercase()
+    val day = if(now.dayOfMonth < 10) "0${now.dayOfMonth}" else now.dayOfMonth.toString()
+    val year = now.year.toString()
+    val completed = tasksState.tasks.filter { it.isComplete }.size
+    val pending = tasksState.tasks.filter { !it.isComplete }.size
+
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(onClick = {
@@ -55,12 +72,76 @@ fun TodayScreen(viewModel: TodayViewModel) {
         },
         floatingActionButtonPosition = FabPosition.End
     ) {
-        Column(modifier = Modifier.padding(it).padding(16.dp)) {
+        Column(modifier = Modifier.padding(it).padding(10.dp)) {
+            Text(
+                text = "Welcome back!".uppercase(),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(10.dp)
+            )
+            Row (
+                modifier = Modifier.fillMaxWidth().height(100.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(20.dp))
+                        .height(100.dp)
+                        .background(
+                            brush = Brush.linearGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.primary, // Start color
+                                    MaterialTheme.colorScheme.tertiary  // End color
+                                )
+                            )
+                        )
+                    ,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(text = month, style = MaterialTheme.typography.titleLarge)
+                    Text(text = day, style = MaterialTheme.typography.titleSmall)
+                    Text(text = year, style = MaterialTheme.typography.titleLarge)
+                }
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(MaterialTheme.colorScheme.primary)
+
+                    ,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(text = "$completed Tasks")
+                        Text(text = "Completed", style = MaterialTheme.typography.labelSmall)
+                    }
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(text = "$pending Tasks")
+                        Text(text = "Pending", style = MaterialTheme.typography.labelSmall)
+                    }
+                }
+                }
             if (tasksState.error != null) {
                 Text(text = tasksState.error!!)
             }
+            Text(
+                text="TASKS",
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.padding(top=20.dp),
+                color = MaterialTheme.colorScheme.inversePrimary
+            )
             if (tasksState.tasks.isNotEmpty()) {
-                LazyColumn {
+                LazyColumn(
+                    modifier = Modifier.padding(top=20.dp).weight(1f),
+                ) {
                     items(tasksState.tasks) { task ->
                         TaskItem(task, context)
                     }
@@ -82,21 +163,34 @@ fun TaskItem(task: DbTask, context: Context) {
     ) {
         Column {
             Column(
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier.padding(5.dp)
             ) {
-                Text(
-                    text = task.title,
-                    style = MaterialTheme.typography.titleMedium
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = "Edit Task",
+                        tint = MaterialTheme.colorScheme.secondary,
+                        modifier = Modifier.size(10.dp)
+                    )
+                    Text(
+                        text = task.title,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
                 Text(
                     text = task.description,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 4,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
-            Spacer(modifier = Modifier.size(8.dp))
+            Spacer(modifier = Modifier.size(5.dp))
             HorizontalDivider(
                 thickness = 0.5.dp,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.primary
             )
         }
     }

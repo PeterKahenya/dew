@@ -17,7 +17,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -66,8 +68,8 @@ fun LoginScreen(
             .background(
                 brush = Brush.linearGradient(
                     colors = listOf(
-                        Color(0xFF008080), // Start color
-                        Color(0xFF1bc455)  // End color
+                        MaterialTheme.colorScheme.primary, // Start color
+                        MaterialTheme.colorScheme.secondary  // End color
                     )
                 )
             )
@@ -78,11 +80,9 @@ fun LoginScreen(
                 .fillMaxSize()
         )  {
             Text(
-                text = "dew",
-                color = Color.White,
-                fontSize = 70.sp,
+                text = "Dew",
+                style = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.colorScheme.onPrimary, fontSize = 70.sp, fontWeight = FontWeight.Bold),
                 textAlign = TextAlign.Center,
-                fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 100.dp, bottom = 10.dp)
             )
             if (loginState.auth != null) {
@@ -93,16 +93,18 @@ fun LoginScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .height(400.dp)
-                    .clip(RoundedCornerShape(30.dp))
-                    .background(Color.White)
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(MaterialTheme.colorScheme.onPrimary)
                     .padding(30.dp)
             ) {
                 Text(
-                    text = "Login",
+                    text = "LOGIN",
                     textAlign = TextAlign.Start,
-                    fontSize = 30.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Gray,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                                                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                                    fontSize = 30.sp,
+                                                                    fontWeight = FontWeight.Bold
+                                                                    ),
                     modifier = Modifier.fillMaxWidth()
                 )
                 if (loginState.isLoading) {
@@ -111,7 +113,7 @@ fun LoginScreen(
                 if (loginState.error != null) {
                     Text(
                         text = loginState.error!!,
-                        color = Color.Red
+                        color = MaterialTheme.colorScheme.error
                     )
                 }
                 OutlinedTextField(
@@ -120,11 +122,18 @@ fun LoginScreen(
                     onValueChange = {
                         login.value = login.value.copy(email = it)
                     },
-                    placeholder={ Text(text = "Email")},
+                    placeholder={ Text(text = "Email", color = MaterialTheme.colorScheme.onPrimary)},
                     modifier = Modifier
                         .testTag("loginEmailField")
                         .fillMaxWidth()
                         .padding(top = 30.dp)
+                        .clip(RoundedCornerShape(30.dp))
+                        .background(MaterialTheme.colorScheme.primary),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedBorderColor = Color.Transparent,
+                        focusedBorderColor = Color.Transparent,
+                        errorBorderColor = Color.Transparent,
+                    ),
                 )
                 OutlinedTextField(
                     value = login.value.password,
@@ -132,11 +141,18 @@ fun LoginScreen(
                     onValueChange = {
                         login.value = login.value.copy(password = it)
                     },
-                    placeholder={ Text(text = "Password")},
+                    placeholder={ Text(text = "Password",color = MaterialTheme.colorScheme.onPrimary)},
                     modifier = Modifier
                         .testTag("loginPasswordField")
                         .fillMaxWidth()
-                        .padding(top = 30.dp),
+                        .padding(top = 30.dp)
+                        .clip(RoundedCornerShape(30.dp))
+                        .background(MaterialTheme.colorScheme.primary),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedBorderColor = Color.Transparent,
+                        focusedBorderColor = Color.Transparent,
+                        errorBorderColor = Color.Transparent,
+                    ),
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
                 )
@@ -168,9 +184,9 @@ fun LoginScreen(
                         .testTag("loginNextButton")
                         .width(100.dp)
                         .align(Alignment.CenterVertically),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFFFFF))
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                 ) {
-                    Text(text = "Signup", color = Color.DarkGray)
+                    Text(text = "Signup", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }

@@ -14,6 +14,7 @@ import dew.app.mobile.presentation.ui.theme.DewTheme
 class TaskActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         val taskId = intent.getStringExtra("taskId")
         println("TaskActivity taskId: $taskId")
         setContent {

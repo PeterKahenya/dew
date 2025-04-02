@@ -15,6 +15,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -51,7 +52,6 @@ fun TaskScreen(
     val task: DbTask? = taskState.task
     val currentState = remember { mutableStateOf(TaskCreate("", "", false, null)) }
 
-    // Update currentState when taskState.task changes
     LaunchedEffect(task) {
         task?.let {
             currentState.value = TaskCreate(
@@ -67,21 +67,23 @@ fun TaskScreen(
         context.startActivity(Intent(context, CockpitActivity::class.java))
     }
     Column(
-        modifier = Modifier.padding(16.dp).fillMaxHeight(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(vertical = 40.dp, horizontal = 16.dp).fillMaxHeight(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         OutlinedTextField(
             value = currentState.value.title,
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(10.dp))
-                .background(Color(0xFFEEEEEE)),
+                .background(MaterialTheme.colorScheme.surfaceVariant),
             onValueChange = {
                 currentState.value = currentState.value.copy(title = it)
             },
             placeholder = { Text(text = "Title") },
-            textStyle = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary),
-            colors = TextFieldDefaults.outlinedTextFieldColors(
+            textStyle = MaterialTheme.typography.titleMedium,
+            colors = OutlinedTextFieldDefaults.colors(
                 unfocusedBorderColor = Color.Transparent,
                 focusedBorderColor = Color.Transparent,
                 errorBorderColor = Color.Transparent,
@@ -92,22 +94,28 @@ fun TaskScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .clip(RoundedCornerShape(20.dp))
-                .background(Color(0xFFEEEEEE))
+                .clip(RoundedCornerShape(10.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .padding(5.dp),
             onValueChange = {
                 currentState.value = currentState.value.copy(description = it)
             },
-            label = { Text(text = "Description")},
-            textStyle = TextStyle(fontSize = 10.sp, color = Color.DarkGray),
-            colors = TextFieldDefaults.outlinedTextFieldColors(
+            label = { Text(text = "Description", style = MaterialTheme.typography.bodySmall)},
+            textStyle = MaterialTheme.typography.bodySmall,
+            colors = OutlinedTextFieldDefaults.colors(
                 unfocusedBorderColor = Color.Transparent,
                 focusedBorderColor = Color.Transparent,
                 errorBorderColor = Color.Transparent,
             ),
         )
         if (taskState.isUpdated){
-            Text(text="updated", fontSize = 8.sp, color = MaterialTheme.colorScheme.primary, textAlign = TextAlign.End, modifier = Modifier.fillMaxWidth())
+            Text(
+                text="updated",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.End,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)
+            )
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -117,7 +125,11 @@ fun TaskScreen(
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "Completed", fontSize = 12.sp, color = Color.DarkGray)
+                Text(
+                    text = "Completed",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
                 Checkbox(
                     checked = currentState.value.isCompleted?:false,
                     onCheckedChange = {

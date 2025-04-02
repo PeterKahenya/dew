@@ -54,10 +54,6 @@ fun ChatScreen(
     viewModel: ChatViewModel
 ) {
     val chatState by viewModel.state.collectAsStateWithLifecycle()
-
-    if (chatState.error != null) {
-        Text(text = chatState.error!!)
-    }
     Scaffold(bottomBar = {
         MessageBox(sendMessage = { msg: String ->
             viewModel.chat(
@@ -67,7 +63,7 @@ fun ChatScreen(
             )
         })
     }) {
-        MessagesList(modifier = Modifier.padding(it), ml = chatState.messages, chatState.isLoading)
+        MessagesList(modifier = Modifier.padding(it), ml = chatState.messages, chatState.isLoading, chatState.error)
     }
 }
 
@@ -113,7 +109,7 @@ fun MessageBox(sendMessage: (message: String) -> Unit) {
 }
 
 @Composable
-fun MessagesList(modifier: Modifier, ml: List<Chat>, isLoading: Boolean) {
+fun MessagesList(modifier: Modifier, ml: List<Chat>, isLoading: Boolean, error: String?) {
     val listState = rememberLazyListState()
     Column(modifier = modifier.fillMaxSize()) {
         if (ml.isEmpty()) {
@@ -156,9 +152,20 @@ fun MessagesList(modifier: Modifier, ml: List<Chat>, isLoading: Boolean) {
         if (isLoading) {
             LinearProgressIndicator(
                 modifier = Modifier.width(50.dp).height(2.dp).padding(horizontal = 5.dp),
-                color = Color.Green,
-                trackColor = Color.LightGray
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.tertiary
             )
+        }
+        if (error !== null){
+            Box(
+                modifier = Modifier
+                    .padding(10.dp)
+                    .clip(RoundedCornerShape(10.dp)) // Rounded corners for the bubble
+                    .background(MaterialTheme.colorScheme.errorContainer)
+                    .padding(8.dp)
+            ){
+                Text(text = error, style = MaterialTheme.typography.labelSmall)
+            }
         }
     }
 }

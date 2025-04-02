@@ -2,6 +2,8 @@ package dew.app.mobile.presentation.chat
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
+import com.google.gson.annotations.SerializedName
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dew.app.mobile.data.model.Chat
 import dew.app.mobile.data.repository.ChatRepository
@@ -19,6 +21,10 @@ data class ChatState(
     val messages: List<Chat> = emptyList(),
     val error: String? = null
 )
+data class ErrorResponse(
+    @SerializedName("detail") val detail: String?
+)
+
 
 @HiltViewModel
 class ChatViewModel @Inject constructor(
@@ -47,10 +53,10 @@ class ChatViewModel @Inject constructor(
                     it.copy(messages = it.messages + message, isLoading = false, error = null)
                 }
             } catch (e: HttpException){
-                val error = "Chat HttpException: ${e.response()} ${e.localizedMessage}"
-                println(error)
+                val errorResponse = Gson().fromJson(e.response()?.errorBody()?.string(), ErrorResponse::class.java).detail
+                println(errorResponse)
                 _state.update {
-                    it.copy(messages = emptyList(), isLoading = false, error = error)
+                    it.copy(isLoading = false, error = errorResponse)
                 }
             } catch (e: IOException){
                 val error = "Chat IOException: ${e.localizedMessage ?: "Couldn't reach server. Check your internet connection"}"
