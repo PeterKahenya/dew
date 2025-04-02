@@ -1,3 +1,15 @@
+.layout {
+  display: flex;
+  height: 100vh;
+  margin: 0;
+}
+.content {
+  flex-grow: 1;
+  padding: 50px;
+  height: 100vh;
+  overflow-y: auto;
+}
+
 .navbar {
   color: white;
   display: flex;

@@ -8,7 +8,7 @@ import { use } from "react"
 
 export default function Page({ params, }: { params: Promise<{ task_id: string }> }) {
     const { task_id } = use(params)
-    const { tasks, filterTasks, updateTask } = useTasks()
+    const { tasks, filterTasks, isLoading, updateTask } = useTasks()
     const router = useRouter()
     const task = tasks.data.filter((task: Task) => task.id === task_id)[0]
 
