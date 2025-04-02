@@ -52,7 +52,7 @@ export function TasksProvider({ children, user_id }: { children: React.ReactNode
         updateTask,
         deleteTask
     }}>
-        {isLoading ? <p>Loading ...</p> : children}
+        {children}
     </TasksContext.Provider>
 }
 
