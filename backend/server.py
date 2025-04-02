@@ -301,7 +301,7 @@ llama = initialize_llama(
         world_size=1,
         ckpt_dir="llama/Llama3.2-1B-Instruct",
         tokenizer_path="llama/Llama3.2-1B-Instruct/tokenizer.model",
-        max_seq_len=4096,
+        max_seq_len=6120,
         max_batch_size=1,
     )
 
