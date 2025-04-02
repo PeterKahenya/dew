@@ -11,7 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.ExperimentalMaterial3Api
 
-private val DarkColorScheme = darkColorScheme(
+private val LightColorScheme = darkColorScheme(
     primary = primaryLight,
     onPrimary = onPrimaryLight,
     primaryContainer = primaryContainerLight,
@@ -49,7 +49,7 @@ private val DarkColorScheme = darkColorScheme(
     surfaceContainerHighest = surfaceContainerHighestLight,
 )
 
-private val LightColorScheme = lightColorScheme(
+private val DarkColorScheme = lightColorScheme(
     primary = primaryDark,
     onPrimary = onPrimaryDark,
     primaryContainer = primaryContainerDark,
