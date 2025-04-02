@@ -11,13 +11,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -37,8 +37,8 @@ fun WelcomeScreen(viewModel: WelcomeViewModel) {
             .background(
                 brush = Brush.linearGradient(
                     colors = listOf(
-                        Color(0xFF008080), // Start color
-                        Color(0xFF1bc455)  // End color
+                        MaterialTheme.colorScheme.primary, // Start color
+                        MaterialTheme.colorScheme.secondary  // End color
                     )
                 )
             )
@@ -62,15 +62,16 @@ fun WelcomeScreen(viewModel: WelcomeViewModel) {
                     .padding(horizontal = 50.dp),
                 verticalArrangement = Arrangement.SpaceAround
             ) {
-                Column {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
                     Text(
-                        text = "dew",
-                        color = Color.White,
-                        fontSize = 100.sp,
+                        text = "Dew",
+                        style = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.colorScheme.onPrimary, fontSize = 70.sp, fontWeight = FontWeight.Bold),
                         textAlign = TextAlign.Center,
-                        fontWeight = FontWeight.Bold
                     )
-                    Text(text = "Your smart task assistant.", color = Color.White)
+                    Text(text = "Your smart task assistant.", style = MaterialTheme.typography.titleSmall.copy(color = MaterialTheme.colorScheme.onPrimary))
                 }
                 Button(
                     onClick = {
@@ -79,9 +80,9 @@ fun WelcomeScreen(viewModel: WelcomeViewModel) {
                     modifier = Modifier
                         .height(50.dp)
                         .width(200.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFFFFF))
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onPrimaryContainer)
                 ) {
-                    Text(text = "Login", color = Color.Black)
+                    Text(text = "Login")
                 }
             }
         }

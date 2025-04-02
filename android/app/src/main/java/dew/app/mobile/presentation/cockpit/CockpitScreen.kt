@@ -1,12 +1,14 @@
 package dew.app.mobile.presentation.cockpit
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CalendarToday
@@ -17,6 +19,7 @@ import androidx.compose.material.icons.filled.FormatListNumbered
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -27,6 +30,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -41,7 +45,7 @@ import dew.app.mobile.presentation.today.TodayViewModel
 
 @Composable
 fun CockpitScreen(){
-    var selectedTabIndex by remember { mutableIntStateOf(1) }
+    var selectedTabIndex by remember { mutableIntStateOf(0) }
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -64,20 +68,47 @@ fun CockpitScreen(){
                 Tab(
                     selected = selectedTabIndex == 0,
                     onClick = { selectedTabIndex = 0 },
-                    text = { Text("Today", fontSize = 12.sp) },
-                    icon = { Icon(imageVector = Icons.Default.DateRange, contentDescription = "Today") }
+                    text = { Text("Today", style = MaterialTheme.typography.labelSmall) },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.DateRange,
+                            contentDescription = "Today",
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(20.dp))
+                                .background(if (selectedTabIndex == 0) MaterialTheme.colorScheme.surfaceVariant else Color.Transparent)
+                                .padding(5.dp)
+                        )
+                    }
                 )
                 Tab(
                     selected = selectedTabIndex == 1,
                     onClick = { selectedTabIndex = 1 },
                     text = { Text("All Tasks",fontSize = 12.sp) },
-                    icon = { Icon(imageVector = Icons.Default.FormatListNumbered, contentDescription = "Today") }
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.FormatListNumbered,
+                            contentDescription = "Today",
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(20.dp))
+                                .background(if (selectedTabIndex == 1) MaterialTheme.colorScheme.surfaceVariant else Color.Transparent)
+                                .padding(5.dp)
+                        )
+                    }
                 )
                 Tab(
                     selected = selectedTabIndex == 2,
                     onClick = { selectedTabIndex = 2 },
                     text = { Text("Chat",fontSize = 12.sp) },
-                    icon = { Icon(imageVector = Icons.Default.AutoAwesome, contentDescription = "Today") }
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.AutoAwesome,
+                            contentDescription = "Today",
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(20.dp))
+                                .background(if (selectedTabIndex == 2) MaterialTheme.colorScheme.surfaceVariant else Color.Transparent)
+                                .padding(5.dp)
+                        )
+                    }
                 )
             }
         },

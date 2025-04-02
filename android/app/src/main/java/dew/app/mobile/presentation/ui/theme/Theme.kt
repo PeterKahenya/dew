@@ -104,9 +104,6 @@ fun DewTheme(
         else -> LightColorScheme
     }
 
-    println(colorScheme)
-    println(dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
