@@ -95,6 +95,10 @@ dependencies {
     implementation(libs.kotlinx.datetime)
     // Markdown rendering
     implementation(libs.compose.markdown)
+    // Google Fonts
+    implementation(libs.androidx.ui.text.google.fonts)
+    // Google Icons
+    implementation(libs.androidx.material.icons.extended)
 }
 kapt {
     correctErrorTypes = true

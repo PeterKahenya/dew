@@ -1,7 +1,6 @@
 package dew.app.mobile.presentation.tasks
 
 import android.content.Intent
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,8 +12,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FilterChip
@@ -25,7 +24,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -34,7 +32,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -61,48 +58,48 @@ fun TasksScreen(viewModel: TasksViewModel) {
     }
 
     val context = LocalContext.current
-    Scaffold(floatingActionButton = {
-        FloatingActionButton(onClick = {
-            context.startActivity(Intent(context, TaskActivity::class.java))
-        }) {
-            Row(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
+    Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    context.startActivity(Intent(context, TaskActivity::class.java))
+                },
+                modifier = Modifier.padding(16.dp)
             ) {
-                Icon(Icons.Default.Edit, contentDescription = "Add Task")
-                Text(text = "Add Task")
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Default.Edit, contentDescription = "Add Task")
+                    Text(text = "Add Task")
+                }
             }
-        }
-    }, floatingActionButtonPosition = FabPosition.Center, topBar = {
-        OutlinedTextField(
-            value = filters.value.q,
-            onValueChange = {
-                filters.value = filters.value.copy(q = it)
-                viewModel.getTasks(filters.value.toQueryMap())
-                            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(5.dp)
-                .background(Color(0xFFF5F5F5)),
-            placeholder = { Text("Search") },
-            leadingIcon = {
-                IconButton(onClick = {
-                    viewFilterPanel = !viewFilterPanel
-                }) {
-                    Icon(Icons.Default.Menu, contentDescription = "Search")
+        },
+        floatingActionButtonPosition = FabPosition.End,
+        topBar = {
+            OutlinedTextField(
+                value = filters.value.q,
+                onValueChange = {
+                    filters.value = filters.value.copy(q = it)
+                    viewModel.getTasks(filters.value.toQueryMap())
+                                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(5.dp),
+                placeholder = { Text("Search") },
+                leadingIcon = {
+                    IconButton(onClick = {
+                        viewFilterPanel = !viewFilterPanel
+                    }) {
+                        Icon(Icons.Default.Tune, contentDescription = "Search")
+                    }
+                },
+                trailingIcon = {
+                    IconButton(onClick = { /*TODO*/ }) {
+                        Icon(Icons.Default.Search, contentDescription = "Search")
+                    }
                 }
-            },
-            trailingIcon = {
-                IconButton(onClick = { /*TODO*/ }) {
-                    Icon(Icons.Default.Search, contentDescription = "Search")
-                }
-            },
-            colors = TextFieldDefaults.outlinedTextFieldColors(
-                unfocusedBorderColor = Color.Transparent,
-                focusedBorderColor = Color.Transparent,
-                errorBorderColor = Color.Transparent,
-            ),
-        )
+            )
     }) {
         if (tasksState.error != null) {
             Text(text = tasksState.error!!)

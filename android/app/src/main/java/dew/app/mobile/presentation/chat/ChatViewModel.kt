@@ -27,9 +27,12 @@ class ChatViewModel @Inject constructor(
     private val _state = MutableStateFlow(ChatState())
     val state: StateFlow<ChatState> = _state.asStateFlow()
     init {
-//        _state.update {
-//            it.copy(messages = it.messages + Chat(role = "assistant", content = "Hello, how can I help you today?")+it.messages + Chat(role = "user", content = "Who are you?"))
-//        }
+        _state.update {
+            it.copy(messages = it.messages
+                    + Chat(role = "assistant", content = "Hello, how can I help you today?")
+                    + Chat(role = "user", content = "Please summarize my pending \n tasks.")
+            )
+        }
     }
 
     fun chat(chat: Chat){
