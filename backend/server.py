@@ -307,7 +307,15 @@ llama = initialize_llama(
 
 def prompt_llama(context_tasks: list[dict], prompt: str) -> str:
     datetime_now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    system_prompt = f"You are my assistant for a task management app called Dew. Please respond in a format that's easy to read. Below are my most recent tasks in JSON format: {str(context_tasks)}. The time right now is: {datetime_now}."
+    system_prompt = f"""
+    You are my assistant for a task management app called Dew. 
+    Below are my most recent tasks in JSON format: 
+
+    {str(context_tasks)}
+
+    Please respond in a format that's easy to read without mentioning the JSON or the IDs(unless absolutely necessary). 
+    The date and time right now is: {datetime_now}. 
+    """
     dialogs: list[Dialog] = [
         [
             {
@@ -322,11 +330,10 @@ def prompt_llama(context_tasks: list[dict], prompt: str) -> str:
     ]
     results = llama.chat_completion(
         dialogs,
-        max_gen_len=1024,
+        max_gen_len=2048,
         temperature=0.6,
         top_p=0.9,
     )[0] # dealing with only one batch
-    print(results)
     return results["generation"]["content"]
 
 
