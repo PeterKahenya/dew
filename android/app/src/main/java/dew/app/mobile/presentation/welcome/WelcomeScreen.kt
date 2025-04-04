@@ -38,7 +38,7 @@ fun WelcomeScreen(viewModel: WelcomeViewModel) {
                 brush = Brush.linearGradient(
                     colors = listOf(
                         MaterialTheme.colorScheme.primary, // Start color
-                        MaterialTheme.colorScheme.secondary  // End color
+                        MaterialTheme.colorScheme.primary  // End color
                     )
                 )
             )
@@ -68,7 +68,11 @@ fun WelcomeScreen(viewModel: WelcomeViewModel) {
                 ) {
                     Text(
                         text = "Dew",
-                        style = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.colorScheme.onPrimary, fontSize = 70.sp, fontWeight = FontWeight.Bold),
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            fontSize = 70.sp,
+                            fontWeight = FontWeight.Bold
+                        ),
                         textAlign = TextAlign.Center,
                     )
                     Text(text = "Your smart task assistant.", style = MaterialTheme.typography.titleSmall.copy(color = MaterialTheme.colorScheme.onPrimary))
@@ -80,9 +84,11 @@ fun WelcomeScreen(viewModel: WelcomeViewModel) {
                     modifier = Modifier
                         .height(50.dp)
                         .width(200.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onPrimaryContainer)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.onPrimary
+                    )
                 ) {
-                    Text(text = "Login")
+                    Text(text = "Login", color = MaterialTheme.colorScheme.primary)
                 }
             }
         }
