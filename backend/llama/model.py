@@ -274,9 +274,14 @@ class Transformer(nn.Module):
             params.rope_theta,
         )
 
+        self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')    
+        self.to(self.device)
+
     @torch.inference_mode()
     def forward(self, tokens: torch.Tensor, start_pos: int):
         _bsz, seqlen = tokens.shape
+        device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+        tokens = tokens.to(device=device)
         h = self.tok_embeddings(tokens)
         self.freqs_cis = self.freqs_cis.to(h.device)
         freqs_cis = self.freqs_cis[start_pos : start_pos + seqlen]
