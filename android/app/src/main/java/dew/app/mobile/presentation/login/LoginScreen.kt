@@ -69,7 +69,7 @@ fun LoginScreen(
                 brush = Brush.linearGradient(
                     colors = listOf(
                         MaterialTheme.colorScheme.primary, // Start color
-                        MaterialTheme.colorScheme.secondary  // End color
+                        MaterialTheme.colorScheme.primary  // End color
                     )
                 )
             )
@@ -94,11 +94,11 @@ fun LoginScreen(
                 modifier = Modifier
                     .height(400.dp)
                     .clip(RoundedCornerShape(20.dp))
-                    .background(MaterialTheme.colorScheme.onPrimary)
+                    .background(MaterialTheme.colorScheme.onSurface)
                     .padding(30.dp)
             ) {
                 Text(
-                    text = "LOGIN",
+                    text = "Login",
                     textAlign = TextAlign.Start,
                     style = MaterialTheme.typography.titleLarge.copy(
                                                                     color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -128,12 +128,13 @@ fun LoginScreen(
                         .fillMaxWidth()
                         .padding(top = 30.dp)
                         .clip(RoundedCornerShape(30.dp))
-                        .background(MaterialTheme.colorScheme.primary),
+                        .background(MaterialTheme.colorScheme.surface),
                     colors = OutlinedTextFieldDefaults.colors(
                         unfocusedBorderColor = Color.Transparent,
                         focusedBorderColor = Color.Transparent,
                         errorBorderColor = Color.Transparent,
                     ),
+                    textStyle = MaterialTheme.typography.labelLarge.copy(color = MaterialTheme.colorScheme.primary)
                 )
                 OutlinedTextField(
                     value = login.value.password,
@@ -147,12 +148,13 @@ fun LoginScreen(
                         .fillMaxWidth()
                         .padding(top = 30.dp)
                         .clip(RoundedCornerShape(30.dp))
-                        .background(MaterialTheme.colorScheme.primary),
+                        .background(MaterialTheme.colorScheme.surface),
                     colors = OutlinedTextFieldDefaults.colors(
                         unfocusedBorderColor = Color.Transparent,
                         focusedBorderColor = Color.Transparent,
                         errorBorderColor = Color.Transparent,
                     ),
+                    textStyle = MaterialTheme.typography.labelLarge.copy(color = MaterialTheme.colorScheme.primary),
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
                 )
@@ -184,9 +186,9 @@ fun LoginScreen(
                         .testTag("loginNextButton")
                         .width(100.dp)
                         .align(Alignment.CenterVertically),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onPrimary)
                 ) {
-                    Text(text = "Signup", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(text = "Signup", color = MaterialTheme.colorScheme.primary)
                 }
             }
         }

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -91,8 +92,8 @@ fun TodayScreen(viewModel: TodayViewModel) {
                         .background(
                             brush = Brush.linearGradient(
                                 colors = listOf(
-                                    MaterialTheme.colorScheme.primary, // Start color
-                                    MaterialTheme.colorScheme.tertiary  // End color
+                                    MaterialTheme.colorScheme.secondary, // Start color
+                                    MaterialTheme.colorScheme.secondary  // End color
                                 )
                             )
                         )
@@ -100,32 +101,35 @@ fun TodayScreen(viewModel: TodayViewModel) {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Text(text = month, style = MaterialTheme.typography.titleLarge)
-                    Text(text = day, style = MaterialTheme.typography.titleSmall)
-                    Text(text = year, style = MaterialTheme.typography.titleLarge)
+                    Text(text = month, style = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.colorScheme.onSecondary))
+                    Text(text = day, style = MaterialTheme.typography.titleSmall.copy(color = MaterialTheme.colorScheme.onSecondary))
+                    Text(text = year, style = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.colorScheme.onSecondary))
                 }
                 Column(
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(20.dp))
                         .background(MaterialTheme.colorScheme.primary)
-
+                        .fillMaxHeight()
                     ,
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
                     Column(
                         modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
                     ) {
-                        Text(text = "$completed Tasks")
-                        Text(text = "Completed", style = MaterialTheme.typography.labelSmall)
+                        Text(text = "$completed Tasks",style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onPrimary))
+                        Text(text = "Completed", style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onPrimary))
                     }
                     Column(
                         modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
                     ) {
-                        Text(text = "$pending Tasks")
-                        Text(text = "Pending", style = MaterialTheme.typography.labelSmall)
+                        Text(text = "$pending Tasks",style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onPrimary))
+                        Text(text = "Pending", style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onPrimary))
                     }
                 }
                 }
