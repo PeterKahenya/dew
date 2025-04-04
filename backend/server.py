@@ -307,11 +307,110 @@ llama = initialize_llama(
 
 def prompt_llama(context_tasks: list[dict], prompt: str) -> str:
     datetime_now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    function_definitions = [
+        {
+            "name": "create_task",
+            "description": "Create a new task associated with a user in the database.",
+            "parameters": {
+                "type": "dict",
+                "required": [
+                    "db",
+                    "task_create",
+                    "user"
+                ],
+                "properties": {
+                    "db": {
+                        "type": "Session",
+                        "description": "The database session used for querying and persisting data."
+                    },
+                    "task_create": {
+                        "type": "TaskCreate",
+                        "description": "Schema instance containing the data needed to create the task."
+                    },
+                    "user": {
+                        "type": "User",
+                        "description": "The user who owns or created the task."
+                    }
+                }
+            }
+        },
+        {
+            "name": "update_obj",
+            "description": "Update an existing object (user or task) in the database.",
+            "parameters": {
+                "type": "dict",
+                "required": [
+                    "db",
+                    "model",
+                    "obj_id",
+                    "obj_update"
+                ],
+                "properties": {
+                    "db": {
+                        "type": "Session",
+                        "description": "The active database session."
+                    },
+                    "model": {
+                        "type": "Model",
+                        "description": "The SQLAlchemy model class of the object to be updated."
+                    },
+                    "obj_id": {
+                        "type": "UUID4",
+                        "description": "The UUID of the object to update."
+                    },
+                    "obj_update": {
+                        "type": "UserUpdate | TaskUpdate",
+                        "description": "The update schema instance with new values for the object."
+                    }
+                }
+            }
+        },
+        {
+            "name": "delete_obj",
+            "description": "Delete an object from the database by its ID.",
+            "parameters": {
+                "type": "dict",
+                "required": [
+                    "db",
+                    "model",
+                    "id"
+                ],
+                "properties": {
+                    "db": {
+                        "type": "Session",
+                        "description": "The active database session."
+                    },
+                    "model": {
+                        "type": "Model",
+                        "description": "The SQLAlchemy model class of the object to be deleted."
+                    },
+                    "id": {
+                        "type": "UUID4",
+                        "description": "The UUID of the object to delete."
+                    }
+                }
+            }
+        }
+    ]
+
+    function_definitions2 = """
+    async def create_task(db: Session, task_create: TaskCreate, user: User) -> Task:
+    async def update_obj(db: Session, model: Model, obj_id: UUID4, obj_update: UserUpdate|TaskUpdate) -> Model:
+    async def delete_obj(db: Session, model: Model, id: UUID4) -> bool:    
+    """
+
     system_prompt = f"""
     You are my assistant for a task management app called Dew. 
     Below are my most recent tasks in JSON format: 
 
-    {str(context_tasks)}
+    {str(context_tasks)}.
+
+    You have the ability to perform actions in the application by calling the functions defined:
+
+    {function_definitions2}
+
+    If you do make function calls, surround them with
+    <|function_call|> tags
 
     Please respond in a format that's easy to read without mentioning the JSON or the IDs(unless absolutely necessary). 
     The date and time right now is: {datetime_now}. 
@@ -552,4 +651,5 @@ async def chat(
         llama_response = prompt_llama(context_tasks, prompt.content)
         return ChatDialogMessage(role="assistant",content=llama_response)
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500,detail=f"{str(e)}")
